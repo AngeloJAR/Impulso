@@ -76,13 +76,3 @@ export const flowRoutes = {
   recordatorios: "/recordatorios",
   revisionSemanal: "/revision-semanal",
 } as const;
-
-export const defaultProjects = [
-  "AYR Motors / Lubricadora",
-  "GestioLubricadoraMecanica ERP",
-  "App Técnicos",
-  "QuantFusion AI",
-  "Vida personal",
-  "Finanzas",
-  "Marketing",
-] as const;
