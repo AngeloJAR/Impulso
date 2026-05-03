@@ -92,8 +92,7 @@ export default function ProyectoDetallePage() {
       const result = await getProyectoDetalle(proyectoId);
       setData(result);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "No se pudo cargar el proyecto.";
+      const message = err instanceof Error ? err.message : "No se pudo cargar el proyecto.";
 
       setError(message);
     } finally {
@@ -162,9 +161,7 @@ export default function ProyectoDetallePage() {
 
         {loading ? (
           <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-            <p className="text-sm font-medium text-slate-300">
-              Cargando proyecto...
-            </p>
+            <p className="text-sm font-medium text-slate-300">Cargando proyecto...</p>
           </Card>
         ) : !proyecto ? (
           <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
@@ -193,8 +190,7 @@ export default function ProyectoDetallePage() {
                   </h2>
 
                   <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200 md:text-base">
-                    {proyecto.descripcion ||
-                      "Este proyecto todavía no tiene descripción."}
+                    {proyecto.descripcion || "Este proyecto todavía no tiene descripción."}
                   </p>
 
                   <div className="mt-5 flex flex-wrap gap-2">
@@ -209,18 +205,15 @@ export default function ProyectoDetallePage() {
                 </div>
 
                 <Card className="relative rounded-[2rem] border-white/10 bg-slate-950/72 p-6 text-white shadow-[0_18px_70px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-                  <p className="text-sm font-semibold text-slate-300">
-                    Flujo del proyecto
-                  </p>
+                  <p className="text-sm font-semibold text-slate-300">Flujo del proyecto</p>
 
                   <h3 className="mt-2 text-2xl font-black text-white">
                     Objetivos → Tareas → Calendario
                   </h3>
 
                   <p className="mt-3 text-sm leading-6 text-slate-300">
-                    Este proyecto debe avanzar por objetivos claros. Cada
-                    objetivo puede tener tareas y las tareas con fecha aparecen
-                    en el calendario.
+                    Este proyecto debe avanzar por objetivos claros. Cada objetivo puede tener
+                    tareas y las tareas con fecha aparecen en el calendario.
                   </p>
                 </Card>
               </div>
@@ -258,13 +251,9 @@ export default function ProyectoDetallePage() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-sm font-semibold text-slate-300">
-                          {item.title}
-                        </p>
+                        <p className="text-sm font-semibold text-slate-300">{item.title}</p>
 
-                        <p className="mt-3 text-4xl font-black text-white">
-                          {item.value}
-                        </p>
+                        <p className="mt-3 text-4xl font-black text-white">{item.value}</p>
                       </div>
 
                       <div className="rounded-2xl bg-white/15 p-3 text-slate-100 ring-1 ring-white/10">
@@ -280,18 +269,14 @@ export default function ProyectoDetallePage() {
               <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
                 <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <h2 className="text-xl font-black text-white">
-                      Objetivos del proyecto
-                    </h2>
+                    <h2 className="text-xl font-black text-white">Objetivos del proyecto</h2>
 
                     <p className="mt-1 text-sm text-slate-300">
                       Cada objetivo puede tener sus propias tareas asociadas.
                     </p>
                   </div>
 
-                  <Link
-                    href={`/objetivos?proyectoId=${proyectoId}#crear-objetivo`}
-                  >
+                  <Link href={`/objetivos?proyectoId=${proyectoId}#crear-objetivo`}>
                     <Button
                       size="sm"
                       className="rounded-2xl bg-white text-slate-950 hover:bg-slate-100"
@@ -306,13 +291,10 @@ export default function ProyectoDetallePage() {
                   <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-6 text-center backdrop-blur-xl">
                     <Target className="mx-auto mb-3 h-8 w-8 text-slate-300" />
 
-                    <p className="font-semibold text-white">
-                      No hay objetivos en este proyecto
-                    </p>
+                    <p className="font-semibold text-white">No hay objetivos en este proyecto</p>
 
                     <p className="mt-1 text-sm text-slate-300">
-                      Crea un objetivo para este proyecto y luego agrega sus
-                      tareas.
+                      Crea un objetivo para este proyecto y luego agrega sus tareas.
                     </p>
 
                     <Link
@@ -349,18 +331,14 @@ export default function ProyectoDetallePage() {
                               </span>
                             </div>
 
-                            <h3 className="font-black text-white">
-                              {objetivo.titulo}
-                            </h3>
+                            <h3 className="font-black text-white">{objetivo.titulo}</h3>
 
                             {objetivo.descripcion ? (
                               <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-300">
                                 {objetivo.descripcion}
                               </p>
                             ) : (
-                              <p className="mt-1 text-sm text-slate-400">
-                                Sin descripción
-                              </p>
+                              <p className="mt-1 text-sm text-slate-400">Sin descripción</p>
                             )}
                           </div>
 
@@ -382,9 +360,7 @@ export default function ProyectoDetallePage() {
                           <div className="mb-2 flex items-center justify-between text-xs font-semibold">
                             <span className="text-slate-300">Progreso</span>
 
-                            <span className="font-black text-white">
-                              {objetivo.progreso}%
-                            </span>
+                            <span className="font-black text-white">{objetivo.progreso}%</span>
                           </div>
 
                           <div className="h-3 rounded-full bg-white/10 ring-1 ring-white/10">
@@ -440,9 +416,7 @@ export default function ProyectoDetallePage() {
                                   </span>
                                 </div>
 
-                                <p className="text-sm font-semibold text-white">
-                                  {tarea.titulo}
-                                </p>
+                                <p className="text-sm font-semibold text-white">{tarea.titulo}</p>
                               </div>
                             ))
                           )}
@@ -461,21 +435,15 @@ export default function ProyectoDetallePage() {
                     </div>
 
                     <div>
-                      <h2 className="text-lg font-black text-white">
-                        Tareas del proyecto
-                      </h2>
+                      <h2 className="text-lg font-black text-white">Tareas del proyecto</h2>
 
-                      <p className="text-sm text-slate-300">
-                        Resumen de acciones.
-                      </p>
+                      <p className="text-sm text-slate-300">Resumen de acciones.</p>
                     </div>
                   </div>
 
                   {data.tareas.length === 0 ? (
                     <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-5 text-center backdrop-blur-xl">
-                      <p className="text-sm font-semibold text-slate-200">
-                        Sin tareas
-                      </p>
+                      <p className="text-sm font-semibold text-slate-200">Sin tareas</p>
                     </div>
                   ) : (
                     <div className="grid gap-3">
@@ -502,21 +470,17 @@ export default function ProyectoDetallePage() {
                             </span>
                           </div>
 
-                          <p className="text-sm font-semibold text-white">
-                            {tarea.titulo}
-                          </p>
+                          <p className="text-sm font-semibold text-white">{tarea.titulo}</p>
 
                           <div className="mt-2 grid gap-1 text-xs font-medium text-slate-300">
                             <div className="flex items-center gap-2">
                               <CalendarDays className="h-3.5 w-3.5" />
-                              Inicio:{" "}
-                              {formatFecha(tarea.fecha_inicio || tarea.fecha)}
+                              Inicio: {formatFecha(tarea.fecha_inicio || tarea.fecha)}
                             </div>
 
                             <div className="flex items-center gap-2">
                               <CalendarDays className="h-3.5 w-3.5" />
-                              Fin:{" "}
-                              {formatFecha(tarea.fecha_limite || tarea.fecha)}
+                              Fin: {formatFecha(tarea.fecha_limite || tarea.fecha)}
                             </div>
                           </div>
                         </div>
@@ -532,13 +496,10 @@ export default function ProyectoDetallePage() {
                     </div>
 
                     <div>
-                      <h2 className="text-lg font-black text-white">
-                        Calendario
-                      </h2>
+                      <h2 className="text-lg font-black text-white">Calendario</h2>
 
                       <p className="text-sm text-slate-300">
-                        Las tareas con fecha o recordatorio se muestran en el
-                        calendario.
+                        Las tareas con fecha o recordatorio se muestran en el calendario.
                       </p>
                     </div>
                   </div>
@@ -556,13 +517,10 @@ export default function ProyectoDetallePage() {
 
                 {tareasSinObjetivo.length > 0 ? (
                   <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-                    <h2 className="text-lg font-black text-white">
-                      Tareas sin objetivo
-                    </h2>
+                    <h2 className="text-lg font-black text-white">Tareas sin objetivo</h2>
 
                     <p className="mt-1 text-sm text-slate-300">
-                      Estas tareas pertenecen al proyecto, pero no están
-                      asociadas a un objetivo.
+                      Estas tareas pertenecen al proyecto, pero no están asociadas a un objetivo.
                     </p>
 
                     <div className="mt-5 grid gap-3">
@@ -571,21 +529,17 @@ export default function ProyectoDetallePage() {
                           key={tarea.id}
                           className="rounded-2xl border border-white/10 bg-white/10 p-3 backdrop-blur-xl"
                         >
-                          <p className="text-sm font-semibold text-white">
-                            {tarea.titulo}
-                          </p>
+                          <p className="text-sm font-semibold text-white">{tarea.titulo}</p>
 
                           <div className="mt-2 grid gap-1 text-xs font-medium text-slate-300">
                             <div className="flex items-center gap-2">
                               <CalendarDays className="h-3.5 w-3.5" />
-                              Inicio:{" "}
-                              {formatFecha(tarea.fecha_inicio || tarea.fecha)}
+                              Inicio: {formatFecha(tarea.fecha_inicio || tarea.fecha)}
                             </div>
 
                             <div className="flex items-center gap-2">
                               <CalendarDays className="h-3.5 w-3.5" />
-                              Fin:{" "}
-                              {formatFecha(tarea.fecha_limite || tarea.fecha)}
+                              Fin: {formatFecha(tarea.fecha_limite || tarea.fecha)}
                             </div>
                           </div>
                         </div>

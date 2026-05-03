@@ -94,8 +94,7 @@ export default function ObjetivoDetallePage() {
       const result = await getObjetivoDetalle(objetivoId);
       setData(result);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "No se pudo cargar el objetivo.";
+      const message = err instanceof Error ? err.message : "No se pudo cargar el objetivo.";
 
       setError(message);
     } finally {
@@ -121,8 +120,7 @@ export default function ObjetivoDetallePage() {
 
         await loadObjetivo();
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "No se pudo actualizar el progreso.";
+        const message = err instanceof Error ? err.message : "No se pudo actualizar el progreso.";
 
         setError(message);
       }
@@ -140,9 +138,7 @@ export default function ObjetivoDetallePage() {
   }, [data.tareas]);
 
   const objetivo = data.objetivo;
-  const proyectoHref = objetivo?.proyecto_id
-    ? `/proyectos/${objetivo.proyecto_id}`
-    : "/";
+  const proyectoHref = objetivo?.proyecto_id ? `/proyectos/${objetivo.proyecto_id}` : "/";
 
   return (
     <AppShell
@@ -194,9 +190,7 @@ export default function ObjetivoDetallePage() {
 
         {loading ? (
           <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-            <p className="text-sm font-medium text-slate-300">
-              Cargando objetivo...
-            </p>
+            <p className="text-sm font-medium text-slate-300">Cargando objetivo...</p>
           </Card>
         ) : !objetivo ? (
           <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
@@ -225,8 +219,7 @@ export default function ObjetivoDetallePage() {
                   </h2>
 
                   <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200 md:text-base">
-                    {objetivo.descripcion ||
-                      "Este objetivo todavía no tiene descripción."}
+                    {objetivo.descripcion || "Este objetivo todavía no tiene descripción."}
                   </p>
 
                   <div className="mt-5 flex flex-wrap gap-2">
@@ -252,24 +245,20 @@ export default function ObjetivoDetallePage() {
                     )}
 
                     <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200 shadow-sm backdrop-blur-xl">
-                      {formatFecha(objetivo.fecha_inicio)} -{" "}
-                      {formatFecha(objetivo.fecha_limite)}
+                      {formatFecha(objetivo.fecha_inicio)} - {formatFecha(objetivo.fecha_limite)}
                     </span>
                   </div>
                 </div>
 
                 <Card className="relative rounded-[2rem] border-white/10 bg-slate-950/72 p-6 text-white shadow-[0_18px_70px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-                  <p className="text-sm font-semibold text-slate-300">
-                    Progreso calculado
-                  </p>
+                  <p className="text-sm font-semibold text-slate-300">Progreso calculado</p>
 
                   <h3 className="mt-2 text-5xl font-black text-white">
                     {data.metricas.progresoCalculado}%
                   </h3>
 
                   <p className="mt-3 text-sm leading-6 text-slate-300">
-                    Calculado usando tareas terminadas sobre el total de tareas
-                    del objetivo.
+                    Calculado usando tareas terminadas sobre el total de tareas del objetivo.
                   </p>
 
                   <div className="mt-6 h-3 rounded-full bg-white/10 ring-1 ring-white/10">
@@ -316,12 +305,8 @@ export default function ObjetivoDetallePage() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-sm font-semibold text-slate-300">
-                          {item.title}
-                        </p>
-                        <p className="mt-3 text-4xl font-black text-white">
-                          {item.value}
-                        </p>
+                        <p className="text-sm font-semibold text-slate-300">{item.title}</p>
+                        <p className="mt-3 text-4xl font-black text-white">{item.value}</p>
                       </div>
 
                       <div className="rounded-2xl bg-white/15 p-3 text-slate-100 ring-1 ring-white/10">
@@ -336,9 +321,7 @@ export default function ObjetivoDetallePage() {
             <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
               <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
                 <div className="mb-5">
-                  <h2 className="text-xl font-black text-white">
-                    Tareas del objetivo
-                  </h2>
+                  <h2 className="text-xl font-black text-white">Tareas del objetivo</h2>
                   <p className="mt-1 text-sm text-slate-300">
                     Acciones concretas que hacen avanzar este objetivo.
                   </p>
@@ -347,12 +330,9 @@ export default function ObjetivoDetallePage() {
                 {data.tareas.length === 0 ? (
                   <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-6 text-center backdrop-blur-xl">
                     <ListTodo className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-                    <p className="font-semibold text-white">
-                      No hay tareas asociadas
-                    </p>
+                    <p className="font-semibold text-white">No hay tareas asociadas</p>
                     <p className="mt-1 text-sm text-slate-300">
-                      Las tareas que crees dentro del flujo lineal aparecerán
-                      aquí.
+                      Las tareas que crees dentro del flujo lineal aparecerán aquí.
                     </p>
                   </div>
                 ) : (
@@ -387,16 +367,13 @@ export default function ObjetivoDetallePage() {
                             {tarea.descripcion}
                           </p>
                         ) : (
-                          <p className="mt-1 text-sm text-slate-400">
-                            Sin descripción
-                          </p>
+                          <p className="mt-1 text-sm text-slate-400">Sin descripción</p>
                         )}
 
                         <div className="mt-4 grid gap-2 text-xs font-medium text-slate-300">
                           <div className="flex items-center gap-2">
                             <CalendarDays className="h-3.5 w-3.5" />
-                            Inicio:{" "}
-                            {formatFecha(tarea.fecha_inicio || tarea.fecha)}
+                            Inicio: {formatFecha(tarea.fecha_inicio || tarea.fecha)}
                           </div>
 
                           <div className="flex items-center gap-2">
@@ -423,19 +400,15 @@ export default function ObjetivoDetallePage() {
                     </div>
 
                     <div>
-                      <h2 className="text-lg font-black text-white">
-                        Progreso real
-                      </h2>
-                      <p className="text-sm text-slate-300">
-                        Basado en tareas terminadas.
-                      </p>
+                      <h2 className="text-lg font-black text-white">Progreso real</h2>
+                      <p className="text-sm text-slate-300">Basado en tareas terminadas.</p>
                     </div>
                   </div>
 
                   <div className="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur-xl">
                     <p className="text-sm leading-6 text-slate-300">
-                      {data.metricas.tareasTerminadas} de{" "}
-                      {data.metricas.totalTareas} tareas terminadas.
+                      {data.metricas.tareasTerminadas} de {data.metricas.totalTareas} tareas
+                      terminadas.
                     </p>
 
                     <Button
@@ -450,9 +423,7 @@ export default function ObjetivoDetallePage() {
                 </Card>
 
                 <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-                  <h2 className="text-lg font-black text-white">
-                    Distribución por estado
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Distribución por estado</h2>
 
                   <div className="mt-5 grid gap-3">
                     {[
@@ -466,9 +437,7 @@ export default function ObjetivoDetallePage() {
                         key={label}
                         className="flex items-center justify-between rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl"
                       >
-                        <p className="text-sm font-semibold text-slate-100">
-                          {label}
-                        </p>
+                        <p className="text-sm font-semibold text-slate-100">{label}</p>
                         <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-950 shadow-sm ring-1 ring-white/20">
                           {value}
                         </span>
@@ -478,12 +447,10 @@ export default function ObjetivoDetallePage() {
                 </Card>
 
                 <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-                  <h2 className="text-lg font-black text-white">
-                    Próximo ajuste
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Próximo ajuste</h2>
                   <p className="mt-2 text-sm leading-6 text-slate-300">
-                    Ahora falta guardar el progreso calculado en la tabla
-                    objetivos y aplicar reglas de bloqueo por rango de fechas.
+                    Ahora falta guardar el progreso calculado en la tabla objetivos y aplicar reglas
+                    de bloqueo por rango de fechas.
                   </p>
                 </Card>
               </div>

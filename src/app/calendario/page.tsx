@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Bell,
   CalendarDays,
@@ -134,9 +134,7 @@ function TareaMiniCard({ tarea }: { tarea: CalendarioTarea }) {
         </span>
       </div>
 
-      <p className="line-clamp-2 text-sm font-black leading-5 text-white">
-        {tarea.titulo}
-      </p>
+      <p className="line-clamp-2 text-sm font-black leading-5 text-white">{tarea.titulo}</p>
 
       {tarea.proyecto ? (
         <div className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full border border-sky-200/20 bg-sky-300/15 px-2.5 py-1 text-[11px] font-bold text-sky-100 backdrop-blur-xl">
@@ -148,16 +146,12 @@ function TareaMiniCard({ tarea }: { tarea: CalendarioTarea }) {
       <div className="mt-3 grid gap-1 text-[11px] font-semibold text-slate-300">
         <div className="flex items-center gap-1.5">
           <CalendarDays className="h-3 w-3 shrink-0" />
-          <span className="truncate">
-            Inicio: {formatFecha(getFechaInicioTarea(tarea))}
-          </span>
+          <span className="truncate">Inicio: {formatFecha(getFechaInicioTarea(tarea))}</span>
         </div>
 
         <div className="flex items-center gap-1.5">
           <CalendarDays className="h-3 w-3 shrink-0" />
-          <span className="truncate">
-            Fin: {formatFecha(getFechaFinTarea(tarea))}
-          </span>
+          <span className="truncate">Fin: {formatFecha(getFechaFinTarea(tarea))}</span>
         </div>
       </div>
     </div>
@@ -165,12 +159,11 @@ function TareaMiniCard({ tarea }: { tarea: CalendarioTarea }) {
 }
 
 export default function CalendarioPage() {
-  const [metricas, setMetricas] =
-    useState<CalendarioMetricas>(emptyMetricas);
+  const [metricas, setMetricas] = useState<CalendarioMetricas>(emptyMetricas);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  async function loadCalendario() {
+  const loadCalendario = useCallback(async () => {
     setLoading(true);
     setError("");
 
@@ -178,29 +171,30 @@ export default function CalendarioPage() {
       const data = await getCalendarioMetricas();
       setMetricas(data);
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "No se pudo cargar el calendario.";
+      const message = err instanceof Error ? err.message : "No se pudo cargar el calendario.";
 
       setError(message);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    loadCalendario();
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void loadCalendario();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [loadCalendario]);
 
   const semanaActual = useMemo(() => getSemanaActual(), []);
 
   const tareasPorDia = useMemo(() => {
     return semanaActual.map((dia) => ({
       ...dia,
-      tareas: metricas.tareasSemana.filter((tarea) =>
-        tareaOcurreEnDia(tarea, dia.date)
-      ),
+      tareas: metricas.tareasSemana.filter((tarea) => tareaOcurreEnDia(tarea, dia.date)),
     }));
   }, [metricas.tareasSemana, semanaActual]);
 
@@ -271,17 +265,15 @@ export default function CalendarioPage() {
               type="button"
               variant="outline"
               className="h-10 rounded-2xl border-white/15 bg-white/10 px-4 font-bold text-white shadow-sm backdrop-blur-xl hover:bg-white/15"
-              onClick={loadCalendario}
+              onClick={() => void loadCalendario()}
               disabled={loading}
             >
-              <RefreshCcw
-                className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
-              />
+              <RefreshCcw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               {loading ? "Actualizando" : "Actualizar"}
             </Button>
           </div>
 
-          <div className="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-4 md:p-6">
+          <div className="grid gap-3 p-5 sm:grid-cols-2 md:p-6 xl:grid-cols-4">
             {resumenCalendario.map((item) => {
               const Icon = item.icon;
 
@@ -292,17 +284,13 @@ export default function CalendarioPage() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-300">
-                        {item.title}
-                      </p>
+                      <p className="text-sm font-bold text-slate-300">{item.title}</p>
 
                       <p className="mt-2 text-3xl font-black text-white">
                         {loading ? "..." : item.value}
                       </p>
 
-                      <p className="mt-1 text-sm leading-5 text-slate-300">
-                        {item.description}
-                      </p>
+                      <p className="mt-1 text-sm leading-5 text-slate-300">{item.description}</p>
                     </div>
 
                     <div className="rounded-2xl bg-white/15 p-3 text-slate-100 shadow-sm ring-1 ring-white/10">
@@ -319,9 +307,7 @@ export default function CalendarioPage() {
           <Card className="rounded-[1.75rem] border-white/10 bg-slate-950/44 p-5 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl md:p-6">
             <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-xl font-black text-white">
-                  Semana actual
-                </h2>
+                <h2 className="text-xl font-black text-white">Semana actual</h2>
 
                 <p className="mt-1 text-sm text-slate-300">
                   Tareas distribuidas durante los próximos 7 días.
@@ -349,9 +335,7 @@ export default function CalendarioPage() {
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-base font-black text-white">
-                            {dia.label}
-                          </h3>
+                          <h3 className="text-base font-black text-white">{dia.label}</h3>
 
                           {tieneTareas ? (
                             <span className="rounded-full border border-emerald-200/20 bg-emerald-300/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-100">
@@ -378,9 +362,7 @@ export default function CalendarioPage() {
 
                     {dia.tareas.length === 0 ? (
                       <div className="flex min-h-[96px] items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/10 backdrop-blur-xl">
-                        <p className="text-xs font-bold text-slate-300">
-                          Sin tareas programadas
-                        </p>
+                        <p className="text-xs font-bold text-slate-300">Sin tareas programadas</p>
                       </div>
                     ) : (
                       <div className="grid gap-3">
@@ -412,13 +394,9 @@ export default function CalendarioPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">
-                    Tareas de hoy
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Tareas de hoy</h2>
 
-                  <p className="text-sm text-slate-300">
-                    Acciones que requieren atención.
-                  </p>
+                  <p className="text-sm text-slate-300">Acciones que requieren atención.</p>
                 </div>
               </div>
 
@@ -426,9 +404,7 @@ export default function CalendarioPage() {
                 <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-5 text-center backdrop-blur-xl">
                   <ListTodo className="mx-auto mb-3 h-6 w-6 text-slate-300" />
 
-                  <p className="text-sm font-bold text-white">
-                    Sin tareas para hoy
-                  </p>
+                  <p className="text-sm font-bold text-white">Sin tareas para hoy</p>
                 </div>
               ) : (
                 <div className="grid gap-3">
@@ -446,13 +422,9 @@ export default function CalendarioPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">
-                    Recordatorios
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Recordatorios</h2>
 
-                  <p className="text-sm text-slate-300">
-                    Tareas con aviso configurado.
-                  </p>
+                  <p className="text-sm text-slate-300">Tareas con aviso configurado.</p>
                 </div>
               </div>
 
@@ -460,9 +432,7 @@ export default function CalendarioPage() {
                 <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-5 text-center backdrop-blur-xl">
                   <Bell className="mx-auto mb-3 h-6 w-6 text-slate-300" />
 
-                  <p className="text-sm font-bold text-white">
-                    Sin recordatorios próximos
-                  </p>
+                  <p className="text-sm font-bold text-white">Sin recordatorios próximos</p>
                 </div>
               ) : (
                 <div className="grid gap-3">
@@ -471,9 +441,7 @@ export default function CalendarioPage() {
                       key={tarea.id}
                       className="rounded-2xl border border-white/10 bg-white/10 p-3 text-white backdrop-blur-xl"
                     >
-                      <p className="line-clamp-2 text-sm font-black text-white">
-                        {tarea.titulo}
-                      </p>
+                      <p className="line-clamp-2 text-sm font-black text-white">{tarea.titulo}</p>
 
                       <p className="mt-1 text-xs font-semibold text-slate-300">
                         Recordatorio: {formatFecha(tarea.recordatorio)}
@@ -491,20 +459,16 @@ export default function CalendarioPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">
-                    Próximo paso
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Próximo paso</h2>
 
-                  <p className="text-sm text-slate-300">
-                    Objetivos con fecha límite.
-                  </p>
+                  <p className="text-sm text-slate-300">Objetivos con fecha límite.</p>
                 </div>
               </div>
 
               <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-5 backdrop-blur-xl">
                 <p className="text-sm leading-6 text-slate-300">
-                  Luego conectaremos objetivos reales para mostrar fechas límite
-                  y progreso dentro del calendario.
+                  Luego conectaremos objetivos reales para mostrar fechas límite y progreso dentro
+                  del calendario.
                 </p>
               </div>
             </Card>

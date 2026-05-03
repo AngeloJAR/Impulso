@@ -18,10 +18,7 @@ import {
   getObjetivoDetalle,
   type ObjetivoDetalle,
 } from "@/features/objetivos/objective-detail-queries";
-import {
-  type EstadoTarea,
-  type PrioridadTarea,
-} from "@/features/tareas/queries";
+import { type EstadoTarea, type PrioridadTarea } from "@/features/tareas/queries";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -67,10 +64,7 @@ export default function NuevaTareaObjetivoPage() {
       const data = await getObjetivoDetalle(objetivoId);
       setObjetivo(data.objetivo);
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "No se pudo cargar el objetivo.";
+      const message = err instanceof Error ? err.message : "No se pudo cargar el objetivo.";
 
       setError(message);
     } finally {
@@ -101,9 +95,7 @@ export default function NuevaTareaObjetivoPage() {
         }
 
         if (fechaInicio && fechaLimite && fechaInicio > fechaLimite) {
-          throw new Error(
-            "La fecha de inicio no puede ser mayor que la fecha límite."
-          );
+          throw new Error("La fecha de inicio no puede ser mayor que la fecha límite.");
         }
 
         await crearTarea({
@@ -130,8 +122,7 @@ export default function NuevaTareaObjetivoPage() {
         router.push(`/objetivos/${objetivoId}`);
         router.refresh();
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "No se pudo crear la tarea.";
+        const message = err instanceof Error ? err.message : "No se pudo crear la tarea.";
 
         setError(message);
       }
@@ -139,10 +130,7 @@ export default function NuevaTareaObjetivoPage() {
   }
 
   return (
-    <AppShell
-      title="Nueva tarea"
-      description="Crea una tarea dentro del objetivo seleccionado."
-    >
+    <AppShell title="Nueva tarea" description="Crea una tarea dentro del objetivo seleccionado.">
       <div className="grid gap-6 text-white">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Link href={`/objetivos/${objetivoId}`}>
@@ -176,9 +164,7 @@ export default function NuevaTareaObjetivoPage() {
               </div>
 
               <div>
-                <h2 className="text-xl font-black text-white">
-                  Crear tarea
-                </h2>
+                <h2 className="text-xl font-black text-white">Crear tarea</h2>
 
                 <p className="mt-1 text-sm leading-6 text-slate-300">
                   Esta tarea quedará asociada directamente al objetivo actual.
@@ -188,10 +174,7 @@ export default function NuevaTareaObjetivoPage() {
 
             <form onSubmit={handleSubmit} className="grid gap-4">
               <div className="grid gap-2">
-                <label
-                  htmlFor="titulo"
-                  className="text-sm font-semibold text-slate-100"
-                >
+                <label htmlFor="titulo" className="text-sm font-semibold text-slate-100">
                   Título
                 </label>
 
@@ -206,10 +189,7 @@ export default function NuevaTareaObjetivoPage() {
               </div>
 
               <div className="grid gap-2">
-                <label
-                  htmlFor="descripcion"
-                  className="text-sm font-semibold text-slate-100"
-                >
+                <label htmlFor="descripcion" className="text-sm font-semibold text-slate-100">
                   Descripción
                 </label>
 
@@ -224,19 +204,14 @@ export default function NuevaTareaObjetivoPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="prioridad"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="prioridad" className="text-sm font-semibold text-slate-100">
                     Prioridad
                   </label>
 
                   <select
                     id="prioridad"
                     value={prioridad}
-                    onChange={(event) =>
-                      setPrioridad(event.target.value as PrioridadTarea)
-                    }
+                    onChange={(event) => setPrioridad(event.target.value as PrioridadTarea)}
                     className={selectClassName}
                   >
                     <option value="baja">Baja</option>
@@ -246,19 +221,14 @@ export default function NuevaTareaObjetivoPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="estado"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="estado" className="text-sm font-semibold text-slate-100">
                     Estado
                   </label>
 
                   <select
                     id="estado"
                     value={estado}
-                    onChange={(event) =>
-                      setEstado(event.target.value as EstadoTarea)
-                    }
+                    onChange={(event) => setEstado(event.target.value as EstadoTarea)}
                     className={selectClassName}
                   >
                     <option value="pendiente">Pendiente</option>
@@ -272,10 +242,7 @@ export default function NuevaTareaObjetivoPage() {
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="fechaInicio"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="fechaInicio" className="text-sm font-semibold text-slate-100">
                     Inicio
                   </label>
 
@@ -289,10 +256,7 @@ export default function NuevaTareaObjetivoPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="fechaLimite"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="fechaLimite" className="text-sm font-semibold text-slate-100">
                     Fin
                   </label>
 
@@ -306,10 +270,7 @@ export default function NuevaTareaObjetivoPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="recordatorio"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="recordatorio" className="text-sm font-semibold text-slate-100">
                     Recordatorio
                   </label>
 
@@ -345,9 +306,7 @@ export default function NuevaTareaObjetivoPage() {
                 <div>
                   <h2 className="text-lg font-black text-white">Objetivo</h2>
 
-                  <p className="text-sm text-slate-300">
-                    La tarea se creará aquí.
-                  </p>
+                  <p className="text-sm text-slate-300">La tarea se creará aquí.</p>
                 </div>
               </div>
 
@@ -369,9 +328,7 @@ export default function NuevaTareaObjetivoPage() {
                   ) : null}
                 </div>
               ) : (
-                <p className="text-sm text-slate-300">
-                  Objetivo no encontrado.
-                </p>
+                <p className="text-sm text-slate-300">Objetivo no encontrado.</p>
               )}
             </Card>
 
@@ -382,20 +339,16 @@ export default function NuevaTareaObjetivoPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">
-                    Regla de fechas
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Regla de fechas</h2>
 
-                  <p className="text-sm text-slate-300">
-                    Evitar tareas cruzadas.
-                  </p>
+                  <p className="text-sm text-slate-300">Evitar tareas cruzadas.</p>
                 </div>
               </div>
 
               <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl">
                 <p className="text-sm leading-6 text-slate-300">
-                  Si ya existe una tarea activa dentro de este objetivo con un
-                  rango cruzado, el sistema bloqueará la creación.
+                  Si ya existe una tarea activa dentro de este objetivo con un rango cruzado, el
+                  sistema bloqueará la creación.
                 </p>
               </div>
             </Card>
@@ -407,19 +360,15 @@ export default function NuevaTareaObjetivoPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">
-                    Después de crear
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Después de crear</h2>
 
-                  <p className="text-sm text-slate-300">
-                    Volverás al objetivo o al calendario.
-                  </p>
+                  <p className="text-sm text-slate-300">Volverás al objetivo o al calendario.</p>
                 </div>
               </div>
 
               <p className="text-sm leading-6 text-slate-300">
-                La tarea aparecerá en el detalle del objetivo y en el calendario
-                según su rango de fechas.
+                La tarea aparecerá en el detalle del objetivo y en el calendario según su rango de
+                fechas.
               </p>
             </Card>
           </aside>

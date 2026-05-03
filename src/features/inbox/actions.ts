@@ -6,12 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type PrioridadIdea = "baja" | "media" | "alta";
 
-export type EstadoIdea =
-  | "nueva"
-  | "revisar"
-  | "convertir_en_tarea"
-  | "convertida"
-  | "archivada";
+export type EstadoIdea = "nueva" | "revisar" | "convertir_en_tarea" | "convertida" | "archivada";
 
 type CrearIdeaRapidaPayload = {
   titulo: string;

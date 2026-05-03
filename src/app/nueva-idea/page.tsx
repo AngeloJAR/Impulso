@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -15,19 +14,10 @@ import {
 
 import { crearIdeaRapida } from "@/features/inbox/actions";
 import { crearProyecto } from "@/features/proyectos/actions";
-import {
-  getProyectos,
-  type ProyectoResumen,
-} from "@/features/proyectos/queries";
-import {
-  crearObjetivo,
-  type EstadoObjetivo,
-} from "@/features/objetivos/actions";
+import { getProyectos, type ProyectoResumen } from "@/features/proyectos/queries";
+import { crearObjetivo, type EstadoObjetivo } from "@/features/objetivos/actions";
 import { crearTarea } from "@/features/tareas/actions";
-import {
-  type EstadoTarea,
-  type PrioridadTarea,
-} from "@/features/tareas/queries";
+import { type EstadoTarea, type PrioridadTarea } from "@/features/tareas/queries";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -90,20 +80,16 @@ export default function NuevaIdeaPage() {
 
   const [nuevoProyectoNombre, setNuevoProyectoNombre] = useState("");
   const [nuevoProyectoDescripcion, setNuevoProyectoDescripcion] = useState("");
-  const [nuevoProyectoColor, setNuevoProyectoColor] = useState<
-    (typeof coloresProyecto)[number]["value"]
-  >("slate");
+  const [nuevoProyectoColor, setNuevoProyectoColor] =
+    useState<(typeof coloresProyecto)[number]["value"]>("slate");
 
   const [objetivoTitulo, setObjetivoTitulo] = useState("");
   const [objetivoDescripcion, setObjetivoDescripcion] = useState("");
   const [objetivoFechaInicio, setObjetivoFechaInicio] = useState("");
   const [objetivoFechaLimite, setObjetivoFechaLimite] = useState("");
-  const [objetivoEstado, setObjetivoEstado] =
-    useState<EstadoObjetivo>("activo");
+  const [objetivoEstado, setObjetivoEstado] = useState<EstadoObjetivo>("activo");
 
-  const [tareas, setTareas] = useState<TareaDraft[]>([
-    crearTareaVacia("tarea-inicial"),
-  ]);
+  const [tareas, setTareas] = useState<TareaDraft[]>([crearTareaVacia("tarea-inicial")]);
 
   const [proyectos, setProyectos] = useState<ProyectoResumen[]>([]);
   const [loadingProyectos, setLoadingProyectos] = useState(true);
@@ -113,50 +99,53 @@ export default function NuevaIdeaPage() {
 
   const [isPending, startTransition] = useTransition();
 
-  async function loadProyectos() {
+  const loadProyectos = useCallback(async () => {
     setLoadingProyectos(true);
 
     try {
       const data = await getProyectos();
       setProyectos(data);
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "No se pudieron cargar los proyectos.";
+      const message = err instanceof Error ? err.message : "No se pudieron cargar los proyectos.";
 
       setError(message);
     } finally {
       setLoadingProyectos(false);
     }
-  }
-
-  useEffect(() => {
-    loadProyectos();
   }, []);
 
   useEffect(() => {
-    if (!objetivoTitulo && ideaTitulo.trim()) {
-      setObjetivoTitulo(ideaTitulo.trim());
-    }
-  }, [ideaTitulo, objetivoTitulo]);
+    const timeoutId = window.setTimeout(() => {
+      void loadProyectos();
+    }, 0);
 
-  useEffect(() => {
-    if (!objetivoDescripcion && ideaDescripcion.trim()) {
-      setObjetivoDescripcion(ideaDescripcion.trim());
-    }
-  }, [ideaDescripcion, objetivoDescripcion]);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [loadProyectos]);
 
   const proyectoSeleccionado = useMemo(
     () => proyectos.find((proyecto) => proyecto.id === proyectoId),
     [proyectos, proyectoId]
   );
 
-  function actualizarTarea(
-    tareaId: string,
-    field: keyof Omit<TareaDraft, "id">,
-    value: string
-  ) {
+  function handleIdeaTituloChange(value: string) {
+    setIdeaTitulo(value);
+
+    if (!objetivoTitulo.trim() && value.trim()) {
+      setObjetivoTitulo(value.trim());
+    }
+  }
+
+  function handleIdeaDescripcionChange(value: string) {
+    setIdeaDescripcion(value);
+
+    if (!objetivoDescripcion.trim() && value.trim()) {
+      setObjetivoDescripcion(value.trim());
+    }
+  }
+
+  function actualizarTarea(tareaId: string, field: keyof Omit<TareaDraft, "id">, value: string) {
     setTareas((current) =>
       current.map((tarea) =>
         tarea.id === tareaId
@@ -179,6 +168,7 @@ export default function NuevaIdeaPage() {
   function quitarTarea(tareaId: string) {
     setTareas((current) => {
       if (current.length === 1) return current;
+
       return current.filter((tarea) => tarea.id !== tareaId);
     });
   }
@@ -207,10 +197,7 @@ export default function NuevaIdeaPage() {
     }
 
     const tareaConFechasInvertidas = tareasValidas.find(
-      (tarea) =>
-        tarea.fechaInicio &&
-        tarea.fechaLimite &&
-        tarea.fechaInicio > tarea.fechaLimite
+      (tarea) => tarea.fechaInicio && tarea.fechaLimite && tarea.fechaInicio > tarea.fechaLimite
     );
 
     if (tareaConFechasInvertidas) {
@@ -281,10 +268,7 @@ export default function NuevaIdeaPage() {
         router.push(`/proyectos/${proyectoFinalId}`);
         router.refresh();
       } catch (err) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : "No se pudo completar el flujo.";
+        const message = err instanceof Error ? err.message : "No se pudo completar el flujo.";
 
         setError(message);
       }
@@ -292,10 +276,7 @@ export default function NuevaIdeaPage() {
   }
 
   return (
-    <AppShell
-      title="Nueva idea"
-      description="Flujo guiado: idea → proyecto → objetivo → tareas."
-    >
+    <AppShell title="Nueva idea" description="Flujo guiado: idea → proyecto → objetivo → tareas.">
       <form onSubmit={handleSubmit} className="grid gap-6 text-white">
         {error ? (
           <div className="rounded-2xl border border-red-300/30 bg-red-500/15 px-4 py-3 text-sm font-medium text-red-100 backdrop-blur-xl">
@@ -318,30 +299,24 @@ export default function NuevaIdeaPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-black text-white">
-                    1. Captura la idea
-                  </h2>
+                  <h2 className="text-xl font-black text-white">1. Captura la idea</h2>
 
                   <p className="mt-1 text-sm leading-6 text-slate-300">
-                    No la dejes suelta. Esta idea se convertirá en proyecto,
-                    objetivo y tareas.
+                    No la dejes suelta. Esta idea se convertirá en proyecto, objetivo y tareas.
                   </p>
                 </div>
               </div>
 
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="ideaTitulo"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="ideaTitulo" className="text-sm font-semibold text-slate-100">
                     Idea principal
                   </label>
 
                   <Input
                     id="ideaTitulo"
                     value={ideaTitulo}
-                    onChange={(event) => setIdeaTitulo(event.target.value)}
+                    onChange={(event) => handleIdeaTituloChange(event.target.value)}
                     placeholder="Ej: Crear sistema de contenido para Marketing"
                     className={inputClassName}
                     required
@@ -349,17 +324,14 @@ export default function NuevaIdeaPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="ideaDescripcion"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="ideaDescripcion" className="text-sm font-semibold text-slate-100">
                     Descripción
                   </label>
 
                   <Textarea
                     id="ideaDescripcion"
                     value={ideaDescripcion}
-                    onChange={(event) => setIdeaDescripcion(event.target.value)}
+                    onChange={(event) => handleIdeaDescripcionChange(event.target.value)}
                     placeholder="Explica qué quieres lograr, por qué importa o qué contexto tiene..."
                     className={textareaClassName}
                   />
@@ -374,13 +346,10 @@ export default function NuevaIdeaPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-black text-white">
-                    2. Proyecto
-                  </h2>
+                  <h2 className="text-xl font-black text-white">2. Proyecto</h2>
 
                   <p className="mt-1 text-sm leading-6 text-slate-300">
-                    Decide si esta idea pertenece a un proyecto existente o si
-                    debe crear uno nuevo.
+                    Decide si esta idea pertenece a un proyecto existente o si debe crear uno nuevo.
                   </p>
                 </div>
               </div>
@@ -399,9 +368,7 @@ export default function NuevaIdeaPage() {
 
                   <p
                     className={`mt-1 text-sm leading-5 ${
-                      modoProyecto === "existente"
-                        ? "text-slate-700"
-                        : "text-slate-300"
+                      modoProyecto === "existente" ? "text-slate-700" : "text-slate-300"
                     }`}
                   >
                     Usar uno de tus proyectos actuales.
@@ -421,9 +388,7 @@ export default function NuevaIdeaPage() {
 
                   <p
                     className={`mt-1 text-sm leading-5 ${
-                      modoProyecto === "nuevo"
-                        ? "text-slate-700"
-                        : "text-slate-300"
+                      modoProyecto === "nuevo" ? "text-slate-700" : "text-slate-300"
                     }`}
                   >
                     Crear un espacio nuevo para esta idea.
@@ -433,10 +398,7 @@ export default function NuevaIdeaPage() {
 
               {modoProyecto === "existente" ? (
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="proyectoId"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="proyectoId" className="text-sm font-semibold text-slate-100">
                     Selecciona proyecto
                   </label>
 
@@ -448,9 +410,7 @@ export default function NuevaIdeaPage() {
                     className={selectClassName}
                   >
                     <option value="">
-                      {loadingProyectos
-                        ? "Cargando proyectos..."
-                        : "Selecciona un proyecto"}
+                      {loadingProyectos ? "Cargando proyectos..." : "Selecciona un proyecto"}
                     </option>
 
                     {proyectos.map((proyecto) => (
@@ -479,9 +439,7 @@ export default function NuevaIdeaPage() {
                     <Input
                       id="nuevoProyectoNombre"
                       value={nuevoProyectoNombre}
-                      onChange={(event) =>
-                        setNuevoProyectoNombre(event.target.value)
-                      }
+                      onChange={(event) => setNuevoProyectoNombre(event.target.value)}
                       placeholder="Ej: Marketing"
                       className={inputClassName}
                     />
@@ -498,9 +456,7 @@ export default function NuevaIdeaPage() {
                     <Textarea
                       id="nuevoProyectoDescripcion"
                       value={nuevoProyectoDescripcion}
-                      onChange={(event) =>
-                        setNuevoProyectoDescripcion(event.target.value)
-                      }
+                      onChange={(event) => setNuevoProyectoDescripcion(event.target.value)}
                       placeholder="¿Para qué existe este proyecto?"
                       className={textareaClassName}
                     />
@@ -519,7 +475,7 @@ export default function NuevaIdeaPage() {
                       value={nuevoProyectoColor}
                       onChange={(event) =>
                         setNuevoProyectoColor(
-                          event.target.value as typeof nuevoProyectoColor
+                          event.target.value as (typeof coloresProyecto)[number]["value"]
                         )
                       }
                       className={selectClassName}
@@ -542,9 +498,7 @@ export default function NuevaIdeaPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-black text-white">
-                    3. Objetivo
-                  </h2>
+                  <h2 className="text-xl font-black text-white">3. Objetivo</h2>
 
                   <p className="mt-1 text-sm leading-6 text-slate-300">
                     Convierte la idea en una meta clara con rango de fechas.
@@ -554,10 +508,7 @@ export default function NuevaIdeaPage() {
 
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="objetivoTitulo"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="objetivoTitulo" className="text-sm font-semibold text-slate-100">
                     Título del objetivo
                   </label>
 
@@ -582,9 +533,7 @@ export default function NuevaIdeaPage() {
                   <Textarea
                     id="objetivoDescripcion"
                     value={objetivoDescripcion}
-                    onChange={(event) =>
-                      setObjetivoDescripcion(event.target.value)
-                    }
+                    onChange={(event) => setObjetivoDescripcion(event.target.value)}
                     placeholder="Define qué significa completar este objetivo..."
                     className={textareaClassName}
                   />
@@ -603,9 +552,7 @@ export default function NuevaIdeaPage() {
                       id="objetivoFechaInicio"
                       type="date"
                       value={objetivoFechaInicio}
-                      onChange={(event) =>
-                        setObjetivoFechaInicio(event.target.value)
-                      }
+                      onChange={(event) => setObjetivoFechaInicio(event.target.value)}
                       className={inputClassName}
                     />
                   </div>
@@ -622,9 +569,7 @@ export default function NuevaIdeaPage() {
                       id="objetivoFechaLimite"
                       type="date"
                       value={objetivoFechaLimite}
-                      onChange={(event) =>
-                        setObjetivoFechaLimite(event.target.value)
-                      }
+                      onChange={(event) => setObjetivoFechaLimite(event.target.value)}
                       className={inputClassName}
                     />
                   </div>
@@ -640,9 +585,7 @@ export default function NuevaIdeaPage() {
                     <select
                       id="objetivoEstado"
                       value={objetivoEstado}
-                      onChange={(event) =>
-                        setObjetivoEstado(event.target.value as EstadoObjetivo)
-                      }
+                      onChange={(event) => setObjetivoEstado(event.target.value as EstadoObjetivo)}
                       className={selectClassName}
                     >
                       <option value="activo">Activo</option>
@@ -662,13 +605,10 @@ export default function NuevaIdeaPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-black text-white">
-                    4. Tareas iniciales
-                  </h2>
+                  <h2 className="text-xl font-black text-white">4. Tareas iniciales</h2>
 
                   <p className="mt-1 text-sm leading-6 text-slate-300">
-                    Agrega las primeras acciones. Luego aparecerán en el
-                    calendario si tienen fecha.
+                    Agrega las primeras acciones. Luego aparecerán en el calendario si tienen fecha.
                   </p>
                 </div>
               </div>
@@ -680,9 +620,7 @@ export default function NuevaIdeaPage() {
                     className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl"
                   >
                     <div className="mb-4 flex items-center justify-between gap-3">
-                      <h3 className="font-black text-white">
-                        Tarea {index + 1}
-                      </h3>
+                      <h3 className="font-black text-white">Tarea {index + 1}</h3>
 
                       {tareas.length > 1 ? (
                         <Button
@@ -710,11 +648,7 @@ export default function NuevaIdeaPage() {
                           id={`tarea-${tarea.id}-titulo`}
                           value={tarea.titulo}
                           onChange={(event) =>
-                            actualizarTarea(
-                              tarea.id,
-                              "titulo",
-                              event.target.value
-                            )
+                            actualizarTarea(tarea.id, "titulo", event.target.value)
                           }
                           placeholder="Ej: Definir 5 ideas de contenido"
                           className={inputClassName}
@@ -733,11 +667,7 @@ export default function NuevaIdeaPage() {
                           id={`tarea-${tarea.id}-descripcion`}
                           value={tarea.descripcion}
                           onChange={(event) =>
-                            actualizarTarea(
-                              tarea.id,
-                              "descripcion",
-                              event.target.value
-                            )
+                            actualizarTarea(tarea.id, "descripcion", event.target.value)
                           }
                           placeholder="Detalles de esta tarea..."
                           className={textareaClassName}
@@ -746,18 +676,18 @@ export default function NuevaIdeaPage() {
 
                       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                         <div className="grid gap-2">
-                          <label className="text-sm font-semibold text-slate-100">
+                          <label
+                            htmlFor={`tarea-${tarea.id}-prioridad`}
+                            className="text-sm font-semibold text-slate-100"
+                          >
                             Prioridad
                           </label>
 
                           <select
+                            id={`tarea-${tarea.id}-prioridad`}
                             value={tarea.prioridad}
                             onChange={(event) =>
-                              actualizarTarea(
-                                tarea.id,
-                                "prioridad",
-                                event.target.value
-                              )
+                              actualizarTarea(tarea.id, "prioridad", event.target.value)
                             }
                             className={selectClassName}
                           >
@@ -768,18 +698,18 @@ export default function NuevaIdeaPage() {
                         </div>
 
                         <div className="grid gap-2">
-                          <label className="text-sm font-semibold text-slate-100">
+                          <label
+                            htmlFor={`tarea-${tarea.id}-estado`}
+                            className="text-sm font-semibold text-slate-100"
+                          >
                             Estado
                           </label>
 
                           <select
+                            id={`tarea-${tarea.id}-estado`}
                             value={tarea.estado}
                             onChange={(event) =>
-                              actualizarTarea(
-                                tarea.id,
-                                "estado",
-                                event.target.value
-                              )
+                              actualizarTarea(tarea.id, "estado", event.target.value)
                             }
                             className={selectClassName}
                           >
@@ -792,57 +722,57 @@ export default function NuevaIdeaPage() {
                         </div>
 
                         <div className="grid gap-2">
-                          <label className="text-sm font-semibold text-slate-100">
+                          <label
+                            htmlFor={`tarea-${tarea.id}-inicio`}
+                            className="text-sm font-semibold text-slate-100"
+                          >
                             Inicio
                           </label>
 
                           <Input
+                            id={`tarea-${tarea.id}-inicio`}
                             type="date"
                             value={tarea.fechaInicio}
                             onChange={(event) =>
-                              actualizarTarea(
-                                tarea.id,
-                                "fechaInicio",
-                                event.target.value
-                              )
+                              actualizarTarea(tarea.id, "fechaInicio", event.target.value)
                             }
                             className={inputClassName}
                           />
                         </div>
 
                         <div className="grid gap-2">
-                          <label className="text-sm font-semibold text-slate-100">
+                          <label
+                            htmlFor={`tarea-${tarea.id}-fin`}
+                            className="text-sm font-semibold text-slate-100"
+                          >
                             Fin
                           </label>
 
                           <Input
+                            id={`tarea-${tarea.id}-fin`}
                             type="date"
                             value={tarea.fechaLimite}
                             onChange={(event) =>
-                              actualizarTarea(
-                                tarea.id,
-                                "fechaLimite",
-                                event.target.value
-                              )
+                              actualizarTarea(tarea.id, "fechaLimite", event.target.value)
                             }
                             className={inputClassName}
                           />
                         </div>
 
                         <div className="grid gap-2">
-                          <label className="text-sm font-semibold text-slate-100">
+                          <label
+                            htmlFor={`tarea-${tarea.id}-recordatorio`}
+                            className="text-sm font-semibold text-slate-100"
+                          >
                             Recordatorio
                           </label>
 
                           <Input
+                            id={`tarea-${tarea.id}-recordatorio`}
                             type="date"
                             value={tarea.recordatorio}
                             onChange={(event) =>
-                              actualizarTarea(
-                                tarea.id,
-                                "recordatorio",
-                                event.target.value
-                              )
+                              actualizarTarea(tarea.id, "recordatorio", event.target.value)
                             }
                             className={inputClassName}
                           />
@@ -870,8 +800,8 @@ export default function NuevaIdeaPage() {
               <h2 className="text-lg font-black text-white">Flujo lineal</h2>
 
               <p className="mt-2 text-sm leading-6 text-slate-300">
-                Esta pantalla evita crear ideas sueltas. Todo lo que captures
-                debe avanzar hacia proyecto, objetivo y tareas.
+                Esta pantalla evita crear ideas sueltas. Todo lo que captures debe avanzar hacia
+                proyecto, objetivo y tareas.
               </p>
 
               <div className="mt-6 grid gap-3">
@@ -889,18 +819,14 @@ export default function NuevaIdeaPage() {
                       {index + 1}
                     </span>
 
-                    <p className="text-sm font-semibold text-slate-200">
-                      {item}
-                    </p>
+                    <p className="text-sm font-semibold text-slate-200">{item}</p>
                   </div>
                 ))}
               </div>
             </Card>
 
             <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-              <h2 className="text-lg font-black text-white">
-                Qué pasará al guardar
-              </h2>
+              <h2 className="text-lg font-black text-white">Qué pasará al guardar</h2>
 
               <div className="mt-5 grid gap-3">
                 {[
@@ -918,9 +844,7 @@ export default function NuevaIdeaPage() {
                   >
                     <CheckCircle2 className="h-4 w-4 text-emerald-100" />
 
-                    <p className="text-sm font-semibold text-slate-100">
-                      {item}
-                    </p>
+                    <p className="text-sm font-semibold text-slate-100">{item}</p>
                   </div>
                 ))}
               </div>

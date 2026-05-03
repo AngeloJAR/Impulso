@@ -6,12 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type PrioridadTarea = "baja" | "media" | "alta";
 
-export type EstadoTarea =
-  | "pendiente"
-  | "hoy"
-  | "en_proceso"
-  | "bloqueada"
-  | "terminada";
+export type EstadoTarea = "pendiente" | "hoy" | "en_proceso" | "bloqueada" | "terminada";
 
 type CrearTareaPayload = {
   titulo: string;
@@ -81,9 +76,7 @@ export async function crearTarea(payload: CrearTareaPayload) {
   }
 
   if (fechaInicio && fechaLimite && fechaInicio > fechaLimite) {
-    throw new Error(
-      "La fecha de inicio de la tarea no puede ser mayor que la fecha límite."
-    );
+    throw new Error("La fecha de inicio de la tarea no puede ser mayor que la fecha límite.");
   }
 
   const supabase = await createSupabaseServerClient();
@@ -178,10 +171,7 @@ export async function crearTarea(payload: CrearTareaPayload) {
   return data;
 }
 
-export async function cambiarEstadoTarea(
-  tareaId: string,
-  estado: EstadoTarea
-) {
+export async function cambiarEstadoTarea(tareaId: string, estado: EstadoTarea) {
   const id = tareaId.trim();
   const nuevoEstado = validarEstadoTarea(estado);
 

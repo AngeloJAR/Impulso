@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   Archive,
@@ -123,22 +123,16 @@ function IdeaCard({
         </span>
 
         <span
-          className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${
-            estadoStyles[idea.estado]
-          }`}
+          className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${estadoStyles[idea.estado]}`}
         >
           {getEstadoLabel(idea.estado)}
         </span>
       </div>
 
-      <h4 className="line-clamp-2 text-base font-black leading-6 text-white">
-        {idea.titulo}
-      </h4>
+      <h4 className="line-clamp-2 text-base font-black leading-6 text-white">{idea.titulo}</h4>
 
       {idea.descripcion ? (
-        <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-300">
-          {idea.descripcion}
-        </p>
+        <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-300">{idea.descripcion}</p>
       ) : (
         <p className="mt-2 text-sm text-slate-400">Sin descripción</p>
       )}
@@ -162,10 +156,7 @@ function IdeaCard({
       </div>
 
       <div className="mt-4 grid gap-2">
-        <label
-          htmlFor={`estado-${idea.id}`}
-          className="text-xs font-bold text-slate-300"
-        >
+        <label htmlFor={`estado-${idea.id}`} className="text-xs font-bold text-slate-300">
           Cambiar estado
         </label>
 
@@ -173,9 +164,7 @@ function IdeaCard({
           id={`estado-${idea.id}`}
           value={idea.estado}
           disabled={isUpdating}
-          onChange={(event) =>
-            onCambiarEstado(idea.id, event.target.value as EstadoIdea)
-          }
+          onChange={(event) => onCambiarEstado(idea.id, event.target.value as EstadoIdea)}
           className="h-10 rounded-2xl border border-white/10 bg-slate-950/70 px-3 text-xs font-bold text-white outline-none transition focus:border-white/30 focus:ring-4 focus:ring-white/10 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {estadosIdea.map((estado) => (
@@ -208,14 +197,12 @@ export default function IdeasPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
-  const [estadoActivo, setEstadoActivo] = useState<EstadoIdea | "todas">(
-    "todas"
-  );
+  const [estadoActivo, setEstadoActivo] = useState<EstadoIdea | "todas">("todas");
   const [updatingIdeaId, setUpdatingIdeaId] = useState<string | null>(null);
 
   const [isPending, startTransition] = useTransition();
 
-  async function loadIdeas() {
+  const loadIdeas = useCallback(async () => {
     setLoadingIdeas(true);
     setError("");
     setMessage("");
@@ -224,18 +211,23 @@ export default function IdeasPage() {
       const data = await getIdeas();
       setIdeas(data);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "No se pudieron cargar las ideas.";
+      const message = err instanceof Error ? err.message : "No se pudieron cargar las ideas.";
 
       setError(message);
     } finally {
       setLoadingIdeas(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    loadIdeas();
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void loadIdeas();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [loadIdeas]);
 
   function handleCambiarEstadoIdea(ideaId: string, estado: EstadoIdea) {
     setError("");
@@ -249,9 +241,7 @@ export default function IdeasPage() {
         await loadIdeas();
       } catch (err) {
         const message =
-          err instanceof Error
-            ? err.message
-            : "No se pudo actualizar el estado de la idea.";
+          err instanceof Error ? err.message : "No se pudo actualizar el estado de la idea.";
 
         setError(message);
       } finally {
@@ -280,8 +270,7 @@ export default function IdeasPage() {
     const term = search.trim().toLowerCase();
 
     return ideas.filter((idea) => {
-      const matchEstado =
-        estadoActivo === "todas" || idea.estado === estadoActivo;
+      const matchEstado = estadoActivo === "todas" || idea.estado === estadoActivo;
 
       const matchSearch =
         !term ||
@@ -296,10 +285,7 @@ export default function IdeasPage() {
   }, [ideas, search, estadoActivo]);
 
   return (
-    <AppShell
-      title="Ideas"
-      description="Pensamientos capturados que todavía no son tareas."
-    >
+    <AppShell title="Ideas" description="Pensamientos capturados que todavía no son tareas.">
       <div className="grid gap-4 text-white">
         {error ? (
           <div className="rounded-2xl border border-red-300/30 bg-red-500/15 px-4 py-3 text-sm font-semibold text-red-100 backdrop-blur-xl">
@@ -334,8 +320,7 @@ export default function IdeasPage() {
                 </div>
 
                 <p className="mt-1 text-sm leading-5 text-slate-300">
-                  Revisa, filtra y convierte ideas en tareas cuando ya estén
-                  claras.
+                  Revisa, filtra y convierte ideas en tareas cuando ya estén claras.
                 </p>
               </div>
             </div>
@@ -363,20 +348,16 @@ export default function IdeasPage() {
                 type="button"
                 variant="outline"
                 className="h-10 rounded-2xl border-white/15 bg-white/10 px-4 font-bold text-white shadow-sm backdrop-blur-xl hover:bg-white/15"
-                onClick={loadIdeas}
+                onClick={() => void loadIdeas()}
                 disabled={loadingIdeas}
               >
-                <RefreshCcw
-                  className={`mr-2 h-4 w-4 ${
-                    loadingIdeas ? "animate-spin" : ""
-                  }`}
-                />
+                <RefreshCcw className={`mr-2 h-4 w-4 ${loadingIdeas ? "animate-spin" : ""}`} />
                 {loadingIdeas ? "Actualizando" : "Actualizar"}
               </Button>
             </div>
           </div>
 
-          <div className="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-5 md:p-6">
+          <div className="grid gap-3 p-5 sm:grid-cols-2 md:p-6 xl:grid-cols-5">
             {estadosIdea.map((item) => {
               const Icon = item.icon;
               const total = ideasPorEstado[item.key]?.length ?? 0;
@@ -441,9 +422,7 @@ export default function IdeasPage() {
               <p className="mt-1 text-sm text-slate-300">
                 {loadingIdeas
                   ? "Cargando ideas..."
-                  : `${ideasFiltradas.length} resultado${
-                      ideasFiltradas.length === 1 ? "" : "s"
-                    }`}
+                  : `${ideasFiltradas.length} resultado${ideasFiltradas.length === 1 ? "" : "s"}`}
               </p>
             </div>
 
@@ -473,13 +452,10 @@ export default function IdeasPage() {
                 <Lightbulb className="h-6 w-6" />
               </div>
 
-              <p className="text-lg font-black text-white">
-                Todavía no hay ideas
-              </p>
+              <p className="text-lg font-black text-white">Todavía no hay ideas</p>
 
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-300">
-                Crea una nueva idea para verla aquí y decidir si se convierte en
-                tarea.
+                Crea una nueva idea para verla aquí y decidir si se convierte en tarea.
               </p>
 
               <Link href="/nueva-idea">
@@ -495,9 +471,7 @@ export default function IdeasPage() {
                 <Search className="h-6 w-6" />
               </div>
 
-              <p className="text-lg font-black text-white">
-                No se encontraron ideas
-              </p>
+              <p className="text-lg font-black text-white">No se encontraron ideas</p>
 
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-300">
                 Prueba con otro texto o cambia el filtro de estado.

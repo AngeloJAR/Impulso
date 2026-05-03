@@ -62,12 +62,7 @@ function getPrimaryAction(pathname: string) {
   };
 }
 
-export function AppShell({
-  title,
-  description,
-  backgroundImage,
-  children,
-}: AppShellProps) {
+export function AppShell({ title, description, backgroundImage, children }: AppShellProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -118,9 +113,7 @@ export function AppShell({
               </h1>
 
               {description ? (
-                <p className="hidden truncate text-sm text-slate-300 lg:block">
-                  {description}
-                </p>
+                <p className="hidden truncate text-sm text-slate-300 lg:block">{description}</p>
               ) : null}
             </div>
 
@@ -162,9 +155,7 @@ export function AppShell({
                   >
                     <Icon
                       className={`h-4 w-4 transition ${
-                        active
-                          ? "text-slate-950"
-                          : "text-slate-300 group-hover:text-white"
+                        active ? "text-slate-950" : "text-slate-300 group-hover:text-white"
                       }`}
                     />
                     <span>{item.title}</span>

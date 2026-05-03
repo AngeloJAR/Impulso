@@ -30,9 +30,7 @@ export default function LoginPage() {
       router.refresh();
     } catch (err) {
       const message =
-        err instanceof Error
-          ? err.message
-          : "No se pudo iniciar sesión. Revisa tus datos.";
+        err instanceof Error ? err.message : "No se pudo iniciar sesión. Revisa tus datos.";
 
       setError(message);
     } finally {
@@ -59,18 +57,14 @@ export default function LoginPage() {
               </h1>
 
               <p className="mt-4 max-w-md text-sm leading-6 text-slate-300">
-                Captura ideas, organízalas por proyecto, conviértelas en tareas
-                y revisa lo importante cada semana.
+                Captura ideas, organízalas por proyecto, conviértelas en tareas y revisa lo
+                importante cada semana.
               </p>
             </div>
 
             <Card className="rounded-[2rem] border-white/10 bg-white/5 p-5 text-white shadow-none">
-              <p className="text-sm font-medium text-slate-400">
-                Flujo principal
-              </p>
-              <p className="mt-2 text-lg font-semibold">
-                Idea → Proyecto → Objetivo → Tarea
-              </p>
+              <p className="text-sm font-medium text-slate-400">Flujo principal</p>
+              <p className="mt-2 text-lg font-semibold">Idea → Proyecto → Objetivo → Tarea</p>
             </Card>
           </div>
         </section>
@@ -81,9 +75,7 @@ export default function LoginPage() {
               <LockKeyhole className="h-5 w-5" />
             </div>
 
-            <h2 className="text-2xl font-bold tracking-tight text-slate-950">
-              Iniciar sesión
-            </h2>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-950">Iniciar sesión</h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">
               Entra con tu cuenta de Supabase Auth para usar Impulso.
             </p>
@@ -91,10 +83,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="grid gap-5">
             <div className="grid gap-2">
-              <label
-                htmlFor="email"
-                className="text-sm font-semibold text-slate-700"
-              >
+              <label htmlFor="email" className="text-sm font-semibold text-slate-700">
                 Email
               </label>
 
@@ -114,10 +103,7 @@ export default function LoginPage() {
             </div>
 
             <div className="grid gap-2">
-              <label
-                htmlFor="password"
-                className="text-sm font-semibold text-slate-700"
-              >
+              <label htmlFor="password" className="text-sm font-semibold text-slate-700">
                 Contraseña
               </label>
 
@@ -139,12 +125,7 @@ export default function LoginPage() {
               </div>
             ) : null}
 
-            <Button
-              type="submit"
-              size="lg"
-              className="rounded-2xl"
-              disabled={loading}
-            >
+            <Button type="submit" size="lg" className="rounded-2xl" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -152,8 +133,7 @@ export default function LoginPage() {
 
           <div className="mt-6 rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-4">
             <p className="text-sm leading-6 text-slate-500">
-              Si todavía no tienes usuario, créalo desde Supabase en
-              Authentication → Users.
+              Si todavía no tienes usuario, créalo desde Supabase en Authentication → Users.
             </p>
           </div>
         </section>

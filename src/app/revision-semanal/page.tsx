@@ -93,9 +93,8 @@ export default function RevisionSemanalPage() {
               </h2>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200 md:text-base">
-                La revisión semanal sirve para decidir qué ideas avanzan, qué
-                tareas siguen importando, qué objetivos continúan activos y qué
-                proyectos necesitan atención.
+                La revisión semanal sirve para decidir qué ideas avanzan, qué tareas siguen
+                importando, qué objetivos continúan activos y qué proyectos necesitan atención.
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -119,23 +118,21 @@ export default function RevisionSemanalPage() {
             </div>
 
             <Card className="relative rounded-[2rem] border-white/10 bg-slate-950/72 p-6 text-white shadow-[0_18px_70px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-              <p className="text-sm font-semibold text-slate-300">
-                Regla del módulo
-              </p>
+              <p className="text-sm font-semibold text-slate-300">Regla del módulo</p>
 
               <h3 className="mt-2 text-2xl font-black text-white">
                 Revisar es decidir, no acumular.
               </h3>
 
               <p className="mt-3 text-sm leading-6 text-slate-300">
-                Esta pantalla no será un historial gigante. Mostrará lo que
-                necesita una decisión concreta esta semana.
+                Esta pantalla no será un historial gigante. Mostrará lo que necesita una decisión
+                concreta esta semana.
               </p>
 
               <div className="mt-6 rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl">
                 <p className="text-sm leading-6 text-slate-300">
-                  Luego conectaremos datos reales para detectar ideas nuevas,
-                  tareas postergadas y proyectos sin atención.
+                  Luego conectaremos datos reales para detectar ideas nuevas, tareas postergadas y
+                  proyectos sin atención.
                 </p>
               </div>
             </Card>
@@ -153,18 +150,12 @@ export default function RevisionSemanalPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-3">
-                    <p className="text-sm font-semibold text-slate-300">
-                      {item.title}
-                    </p>
+                    <p className="text-sm font-semibold text-slate-300">{item.title}</p>
 
                     <div className="space-y-1">
-                      <p className="text-4xl font-black text-white">
-                        {item.value}
-                      </p>
+                      <p className="text-4xl font-black text-white">{item.value}</p>
 
-                      <p className="text-sm leading-5 text-slate-300">
-                        {item.description}
-                      </p>
+                      <p className="text-sm leading-5 text-slate-300">{item.description}</p>
                     </div>
                   </div>
 
@@ -180,9 +171,7 @@ export default function RevisionSemanalPage() {
         <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
             <div className="mb-5">
-              <h2 className="text-xl font-black text-white">
-                Panel de revisión
-              </h2>
+              <h2 className="text-xl font-black text-white">Panel de revisión</h2>
 
               <p className="mt-1 text-sm text-slate-300">
                 Aquí aparecerán los elementos que necesitan decisión.
@@ -210,9 +199,7 @@ export default function RevisionSemanalPage() {
 
                     <h3 className="font-black text-white">{item.title}</h3>
 
-                    <p className="mt-2 text-sm leading-6 text-slate-300">
-                      {item.description}
-                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-300">{item.description}</p>
 
                     <div className="mt-5 rounded-3xl border border-dashed border-white/20 bg-white/10 p-4 text-center backdrop-blur-xl">
                       <p className="text-xs leading-5 text-slate-300">
@@ -233,13 +220,9 @@ export default function RevisionSemanalPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">
-                    Preguntas guía
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Preguntas guía</h2>
 
-                  <p className="text-sm text-slate-300">
-                    Para revisar sin perderte.
-                  </p>
+                  <p className="text-sm text-slate-300">Para revisar sin perderte.</p>
                 </div>
               </div>
 
@@ -254,23 +237,17 @@ export default function RevisionSemanalPage() {
                         {index + 1}
                       </span>
 
-                      <p className="text-sm font-semibold text-slate-100">
-                        Pregunta {index + 1}
-                      </p>
+                      <p className="text-sm font-semibold text-slate-100">Pregunta {index + 1}</p>
                     </div>
 
-                    <p className="text-sm leading-6 text-slate-300">
-                      {pregunta}
-                    </p>
+                    <p className="text-sm leading-6 text-slate-300">{pregunta}</p>
                   </div>
                 ))}
               </div>
             </Card>
 
             <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-              <h2 className="text-lg font-black text-white">
-                Resultado esperado
-              </h2>
+              <h2 className="text-lg font-black text-white">Resultado esperado</h2>
 
               <div className="mt-5 grid gap-3">
                 {[
@@ -285,9 +262,7 @@ export default function RevisionSemanalPage() {
                   >
                     <CheckCircle2 className="h-4 w-4 text-emerald-100" />
 
-                    <p className="text-sm font-semibold text-slate-100">
-                      {item}
-                    </p>
+                    <p className="text-sm font-semibold text-slate-100">{item}</p>
                   </div>
                 ))}
               </div>

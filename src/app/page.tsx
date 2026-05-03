@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   CalendarDays,
@@ -13,10 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import {
-  getProyectos,
-  type ProyectoResumen,
-} from "@/features/proyectos/queries";
+import { getProyectos, type ProyectoResumen } from "@/features/proyectos/queries";
 import { flowRoutes } from "@/config/app";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
@@ -55,7 +52,7 @@ export default function HomePage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
-  async function loadProyectos() {
+  const loadProyectos = useCallback(async () => {
     setLoading(true);
     setError("");
 
@@ -63,20 +60,23 @@ export default function HomePage() {
       const data = await getProyectos();
       setProyectos(data);
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "No se pudieron cargar los proyectos.";
+      const message = err instanceof Error ? err.message : "No se pudieron cargar los proyectos.";
 
       setError(message);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    loadProyectos();
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void loadProyectos();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [loadProyectos]);
 
   const proyectosFiltrados = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -88,11 +88,7 @@ export default function HomePage() {
       const descripcion = proyecto.descripcion?.toLowerCase() ?? "";
       const estado = proyecto.estado.toLowerCase();
 
-      return (
-        nombre.includes(term) ||
-        descripcion.includes(term) ||
-        estado.includes(term)
-      );
+      return nombre.includes(term) || descripcion.includes(term) || estado.includes(term);
     });
   }, [proyectos, search]);
 
@@ -120,13 +116,12 @@ export default function HomePage() {
               </div>
 
               <h1 className="max-w-3xl text-3xl font-black tracking-tight text-white drop-shadow-sm md:text-5xl">
-                Captura ideas, conviértelas en objetivos y aterrízalas en
-                tareas.
+                Captura ideas, conviértelas en objetivos y aterrízalas en tareas.
               </h1>
 
               <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-200 md:text-base">
-                Primero captura una idea nueva o entra a un proyecto existente.
-                Dentro del proyecto trabajarás objetivos, tareas y calendario.
+                Primero captura una idea nueva o entra a un proyecto existente. Dentro del proyecto
+                trabajarás objetivos, tareas y calendario.
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -154,37 +149,27 @@ export default function HomePage() {
             </div>
 
             <Card className="relative rounded-[2rem] border-white/10 bg-slate-950/72 p-6 text-white shadow-[0_18px_70px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-              <p className="text-sm font-semibold text-slate-300">
-                Flujo principal
-              </p>
+              <p className="text-sm font-semibold text-slate-300">Flujo principal</p>
 
               <div className="mt-5 grid gap-3">
-                {[
-                  "Dashboard",
-                  "Nueva idea o proyecto",
-                  "Objetivos",
-                  "Tareas",
-                  "Calendario",
-                ].map((item, index) => (
-                  <div
-                    key={item}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-xl"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-white text-xs font-black text-slate-950 shadow-sm">
-                        {index + 1}
-                      </span>
+                {["Dashboard", "Nueva idea o proyecto", "Objetivos", "Tareas", "Calendario"].map(
+                  (item, index) => (
+                    <div
+                      key={item}
+                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-xl"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-white text-xs font-black text-slate-950 shadow-sm">
+                          {index + 1}
+                        </span>
 
-                      <span className="text-sm font-semibold text-white">
-                        {item}
-                      </span>
+                        <span className="text-sm font-semibold text-white">{item}</span>
+                      </div>
+
+                      {index < 4 ? <ArrowRight className="h-4 w-4 text-slate-300" /> : null}
                     </div>
-
-                    {index < 4 ? (
-                      <ArrowRight className="h-4 w-4 text-slate-300" />
-                    ) : null}
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             </Card>
           </div>
@@ -209,15 +194,12 @@ export default function HomePage() {
                   <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-slate-200 backdrop-blur-xl">
                     {loading
                       ? "Cargando..."
-                      : `${proyectos.length} proyecto${
-                          proyectos.length === 1 ? "" : "s"
-                        }`}
+                      : `${proyectos.length} proyecto${proyectos.length === 1 ? "" : "s"}`}
                   </span>
                 </div>
 
                 <p className="mt-1 text-sm leading-5 text-slate-300">
-                  Entra a un proyecto para crear objetivos, tareas y revisar su
-                  calendario.
+                  Entra a un proyecto para crear objetivos, tareas y revisar su calendario.
                 </p>
               </div>
             </div>
@@ -238,12 +220,10 @@ export default function HomePage() {
                 type="button"
                 variant="outline"
                 className="h-10 rounded-2xl border-white/15 bg-white/10 px-4 font-bold text-white shadow-sm backdrop-blur-xl hover:bg-white/15"
-                onClick={loadProyectos}
+                onClick={() => void loadProyectos()}
                 disabled={loading}
               >
-                <RefreshCcw
-                  className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
-                />
+                <RefreshCcw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                 {loading ? "Actualizando" : "Actualizar"}
               </Button>
             </div>
@@ -265,13 +245,10 @@ export default function HomePage() {
                   <Lightbulb className="h-6 w-6" />
                 </div>
 
-                <p className="text-lg font-black text-white">
-                  Todavía no hay proyectos
-                </p>
+                <p className="text-lg font-black text-white">Todavía no hay proyectos</p>
 
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-200">
-                  Crea una nueva idea para generar un proyecto y empezar el
-                  flujo.
+                  Crea una nueva idea para generar un proyecto y empezar el flujo.
                 </p>
 
                 <Link href={flowRoutes.nuevaIdea} className="mt-5 inline-flex">
@@ -287,9 +264,7 @@ export default function HomePage() {
                   <Search className="h-6 w-6" />
                 </div>
 
-                <p className="text-lg font-black text-white">
-                  No se encontraron proyectos
-                </p>
+                <p className="text-lg font-black text-white">No se encontraron proyectos</p>
 
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-200">
                   Prueba con otro nombre, estado o palabra de la descripción.
@@ -304,11 +279,7 @@ export default function HomePage() {
                     className="group flex min-h-[190px] flex-col rounded-3xl border border-white/10 bg-white/10 p-5 text-white shadow-[0_18px_70px_rgba(2,6,23,0.18)] backdrop-blur-2xl transition hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/15 hover:shadow-[0_24px_90px_rgba(2,6,23,0.26)]"
                   >
                     <div className="mb-4 flex items-start justify-between gap-3">
-                      <div
-                        className={`rounded-2xl p-3 ring-1 ${
-                          colorStyles[proyecto.color]
-                        }`}
-                      >
+                      <div className={`rounded-2xl p-3 ring-1 ${colorStyles[proyecto.color]}`}>
                         <FolderKanban className="h-5 w-5" />
                       </div>
 
@@ -337,9 +308,7 @@ export default function HomePage() {
                         {proyecto.descripcion}
                       </p>
                     ) : (
-                      <p className="mt-2 text-sm text-slate-300">
-                        Sin descripción
-                      </p>
+                      <p className="mt-2 text-sm text-slate-300">Sin descripción</p>
                     )}
 
                     <div className="mt-auto pt-4">

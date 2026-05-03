@@ -3,14 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  CalendarDays,
-  CheckCircle2,
-  FolderKanban,
-  Plus,
-  Target,
-} from "lucide-react";
+import { ArrowLeft, CalendarDays, CheckCircle2, FolderKanban, Plus, Target } from "lucide-react";
 
 import { crearObjetivo, type EstadoObjetivo } from "@/features/objetivos/actions";
 import {
@@ -60,10 +53,7 @@ export default function NuevoObjetivoProyectoPage() {
       const data = await getProyectoDetalle(proyectoId);
       setProyecto(data.proyecto);
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "No se pudo cargar el proyecto.";
+      const message = err instanceof Error ? err.message : "No se pudo cargar el proyecto.";
 
       setError(message);
     } finally {
@@ -84,9 +74,7 @@ export default function NuevoObjetivoProyectoPage() {
     startTransition(async () => {
       try {
         if (fechaInicio && fechaLimite && fechaInicio > fechaLimite) {
-          throw new Error(
-            "La fecha de inicio no puede ser mayor que la fecha límite."
-          );
+          throw new Error("La fecha de inicio no puede ser mayor que la fecha límite.");
         }
 
         const objetivo = await crearObjetivo({
@@ -101,9 +89,7 @@ export default function NuevoObjetivoProyectoPage() {
         setMessage("Objetivo creado correctamente.");
 
         if (objetivo?.id) {
-          router.push(
-            `/tareas?proyectoId=${proyectoId}&objetivoId=${objetivo.id}#crear-tarea`
-          );
+          router.push(`/tareas?proyectoId=${proyectoId}&objetivoId=${objetivo.id}#crear-tarea`);
           router.refresh();
           return;
         }
@@ -111,8 +97,7 @@ export default function NuevoObjetivoProyectoPage() {
         router.push(`/proyectos/${proyectoId}`);
         router.refresh();
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "No se pudo crear el objetivo.";
+        const message = err instanceof Error ? err.message : "No se pudo crear el objetivo.";
 
         setError(message);
       }
@@ -157,9 +142,7 @@ export default function NuevoObjetivoProyectoPage() {
               </div>
 
               <div>
-                <h2 className="text-xl font-black text-white">
-                  Crear objetivo
-                </h2>
+                <h2 className="text-xl font-black text-white">Crear objetivo</h2>
 
                 <p className="mt-1 text-sm leading-6 text-slate-300">
                   Este objetivo quedará asociado directamente al proyecto actual.
@@ -169,10 +152,7 @@ export default function NuevoObjetivoProyectoPage() {
 
             <form onSubmit={handleSubmit} className="grid gap-4">
               <div className="grid gap-2">
-                <label
-                  htmlFor="titulo"
-                  className="text-sm font-semibold text-slate-100"
-                >
+                <label htmlFor="titulo" className="text-sm font-semibold text-slate-100">
                   Título
                 </label>
 
@@ -187,10 +167,7 @@ export default function NuevoObjetivoProyectoPage() {
               </div>
 
               <div className="grid gap-2">
-                <label
-                  htmlFor="descripcion"
-                  className="text-sm font-semibold text-slate-100"
-                >
+                <label htmlFor="descripcion" className="text-sm font-semibold text-slate-100">
                   Descripción
                 </label>
 
@@ -205,10 +182,7 @@ export default function NuevoObjetivoProyectoPage() {
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="fechaInicio"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="fechaInicio" className="text-sm font-semibold text-slate-100">
                     Inicio
                   </label>
 
@@ -222,10 +196,7 @@ export default function NuevoObjetivoProyectoPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="fechaLimite"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="fechaLimite" className="text-sm font-semibold text-slate-100">
                     Fin
                   </label>
 
@@ -239,19 +210,14 @@ export default function NuevoObjetivoProyectoPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="estado"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="estado" className="text-sm font-semibold text-slate-100">
                     Estado
                   </label>
 
                   <select
                     id="estado"
                     value={estado}
-                    onChange={(event) =>
-                      setEstado(event.target.value as EstadoObjetivo)
-                    }
+                    onChange={(event) => setEstado(event.target.value as EstadoObjetivo)}
                     className={selectClassName}
                   >
                     <option value="activo">Activo</option>
@@ -284,9 +250,7 @@ export default function NuevoObjetivoProyectoPage() {
                 <div>
                   <h2 className="text-lg font-black text-white">Proyecto</h2>
 
-                  <p className="text-sm text-slate-300">
-                    El objetivo se creará aquí.
-                  </p>
+                  <p className="text-sm text-slate-300">El objetivo se creará aquí.</p>
                 </div>
               </div>
 
@@ -301,9 +265,7 @@ export default function NuevoObjetivoProyectoPage() {
                   </p>
                 </div>
               ) : (
-                <p className="text-sm text-slate-300">
-                  Proyecto no encontrado.
-                </p>
+                <p className="text-sm text-slate-300">Proyecto no encontrado.</p>
               )}
             </Card>
 
@@ -314,20 +276,16 @@ export default function NuevoObjetivoProyectoPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">
-                    Regla de fechas
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Regla de fechas</h2>
 
-                  <p className="text-sm text-slate-300">
-                    Evitar objetivos cruzados.
-                  </p>
+                  <p className="text-sm text-slate-300">Evitar objetivos cruzados.</p>
                 </div>
               </div>
 
               <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl">
                 <p className="text-sm leading-6 text-slate-300">
-                  Si ya existe un objetivo activo o pausado en este proyecto con
-                  un rango cruzado, el sistema bloqueará la creación.
+                  Si ya existe un objetivo activo o pausado en este proyecto con un rango cruzado,
+                  el sistema bloqueará la creación.
                 </p>
               </div>
             </Card>
@@ -339,19 +297,15 @@ export default function NuevoObjetivoProyectoPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">
-                    Después de crear
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Después de crear</h2>
 
-                  <p className="text-sm text-slate-300">
-                    Irás directo a crear la tarea.
-                  </p>
+                  <p className="text-sm text-slate-300">Irás directo a crear la tarea.</p>
                 </div>
               </div>
 
               <p className="text-sm leading-6 text-slate-300">
-                Luego de crear el objetivo, la app te llevará al formulario de
-                tareas con el proyecto y objetivo ya seleccionados.
+                Luego de crear el objetivo, la app te llevará al formulario de tareas con el
+                proyecto y objetivo ya seleccionados.
               </p>
             </Card>
           </aside>

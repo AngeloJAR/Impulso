@@ -1,10 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
 
-export type EstadoObjetivo =
-  | "activo"
-  | "pausado"
-  | "completado"
-  | "abandonado";
+export type EstadoObjetivo = "activo" | "pausado" | "completado" | "abandonado";
 
 export type ProyectoObjetivo = {
   id: string;

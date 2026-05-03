@@ -86,8 +86,8 @@ export default function RecordatoriosPage() {
               </h2>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200 md:text-base">
-                Los recordatorios evitan que las ideas, tareas y objetivos se
-                pierdan. No son una alarma saturada: son avisos de atención.
+                Los recordatorios evitan que las ideas, tareas y objetivos se pierdan. No son una
+                alarma saturada: son avisos de atención.
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -111,23 +111,21 @@ export default function RecordatoriosPage() {
             </div>
 
             <Card className="relative rounded-[2rem] border-white/10 bg-slate-950/72 p-6 text-white shadow-[0_18px_70px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-              <p className="text-sm font-semibold text-slate-300">
-                Regla del módulo
-              </p>
+              <p className="text-sm font-semibold text-slate-300">Regla del módulo</p>
 
               <h3 className="mt-2 text-2xl font-black text-white">
                 Recordar no es llenar de ruido.
               </h3>
 
               <p className="mt-3 text-sm leading-6 text-slate-300">
-                Un buen recordatorio debe traer de vuelta algo accionable:
-                revisar una idea, ejecutar una tarea o evaluar un objetivo.
+                Un buen recordatorio debe traer de vuelta algo accionable: revisar una idea,
+                ejecutar una tarea o evaluar un objetivo.
               </p>
 
               <div className="mt-6 rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl">
                 <p className="text-sm leading-6 text-slate-300">
-                  Más adelante conectaremos fechas reales, estados y relaciones
-                  con ideas, tareas y objetivos.
+                  Más adelante conectaremos fechas reales, estados y relaciones con ideas, tareas y
+                  objetivos.
                 </p>
               </div>
             </Card>
@@ -155,9 +153,7 @@ export default function RecordatoriosPage() {
 
                 <h3 className="font-black text-white">{item.title}</h3>
 
-                <p className="mt-2 text-sm leading-5 text-slate-300">
-                  {item.description}
-                </p>
+                <p className="mt-2 text-sm leading-5 text-slate-300">{item.description}</p>
               </Card>
             );
           })}
@@ -166,9 +162,7 @@ export default function RecordatoriosPage() {
         <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
             <div className="mb-5">
-              <h2 className="text-xl font-black text-white">
-                Recordatorios próximos
-              </h2>
+              <h2 className="text-xl font-black text-white">Recordatorios próximos</h2>
 
               <p className="mt-1 text-sm text-slate-300">
                 Aquí aparecerán los avisos pendientes ordenados por fecha.
@@ -180,13 +174,11 @@ export default function RecordatoriosPage() {
                 <CalendarClock className="h-6 w-6" />
               </div>
 
-              <p className="font-semibold text-white">
-                No hay recordatorios pendientes
-              </p>
+              <p className="font-semibold text-white">No hay recordatorios pendientes</p>
 
               <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-300">
-                Cuando conectemos Supabase, esta sección mostrará los próximos
-                recordatorios de ideas, tareas y objetivos.
+                Cuando conectemos Supabase, esta sección mostrará los próximos recordatorios de
+                ideas, tareas y objetivos.
               </p>
             </div>
           </Card>
@@ -199,9 +191,7 @@ export default function RecordatoriosPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">
-                    Tipos de recordatorio
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Tipos de recordatorio</h2>
 
                   <p className="text-sm text-slate-300">
                     Cada aviso puede estar asociado a una entidad.
@@ -223,14 +213,10 @@ export default function RecordatoriosPage() {
                           <Icon className="h-4 w-4" />
                         </div>
 
-                        <p className="font-semibold text-white">
-                          {item.title}
-                        </p>
+                        <p className="font-semibold text-white">{item.title}</p>
                       </div>
 
-                      <p className="text-sm leading-5 text-slate-300">
-                        {item.description}
-                      </p>
+                      <p className="text-sm leading-5 text-slate-300">{item.description}</p>
                     </div>
                   );
                 })}
@@ -238,9 +224,7 @@ export default function RecordatoriosPage() {
             </Card>
 
             <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-              <h2 className="text-lg font-black text-white">
-                Funciones del módulo
-              </h2>
+              <h2 className="text-lg font-black text-white">Funciones del módulo</h2>
 
               <div className="mt-5 grid gap-3">
                 {funcionesRecordatorio.map((item) => (
@@ -250,9 +234,7 @@ export default function RecordatoriosPage() {
                   >
                     <CheckCircle2 className="h-4 w-4 text-emerald-100" />
 
-                    <p className="text-sm font-semibold text-slate-100">
-                      {item}
-                    </p>
+                    <p className="text-sm font-semibold text-slate-100">{item}</p>
                   </div>
                 ))}
               </div>

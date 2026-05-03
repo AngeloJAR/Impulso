@@ -1,11 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
 
-export type EstadoIdea =
-  | "nueva"
-  | "revisar"
-  | "convertir_en_tarea"
-  | "convertida"
-  | "archivada";
+export type EstadoIdea = "nueva" | "revisar" | "convertir_en_tarea" | "convertida" | "archivada";
 
 export type PrioridadIdea = "baja" | "media" | "alta";
 
@@ -27,10 +22,7 @@ export type IdeaResumen = {
   proyecto: ProyectoIdea | null;
 };
 
-type ProyectoRelacion =
-  | ProyectoIdea
-  | ProyectoIdea[]
-  | null;
+type ProyectoRelacion = ProyectoIdea | ProyectoIdea[] | null;
 
 type IdeaResumenRow = {
   id: string;

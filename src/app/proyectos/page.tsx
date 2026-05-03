@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   CalendarDays,
@@ -13,27 +14,16 @@ import {
   Search,
   Target,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import { crearProyecto } from "@/features/proyectos/actions";
-import {
-  getProyectos,
-  type ProyectoResumen,
-} from "@/features/proyectos/queries";
+import { getProyectos, type ProyectoResumen } from "@/features/proyectos/queries";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-type ColorProyecto =
-  | "slate"
-  | "amber"
-  | "sky"
-  | "emerald"
-  | "violet"
-  | "rose"
-  | "indigo";
+type ColorProyecto = "slate" | "amber" | "sky" | "emerald" | "violet" | "rose" | "indigo";
 
 const colorStyles: Record<ColorProyecto, string> = {
   slate: "bg-slate-200/20 text-slate-100 ring-white/10",
@@ -97,7 +87,7 @@ export default function ProyectosPage() {
 
   const [isPending, startTransition] = useTransition();
 
-  async function loadProyectos() {
+  const loadProyectos = useCallback(async () => {
     setLoadingProyectos(true);
     setError("");
 
@@ -105,20 +95,23 @@ export default function ProyectosPage() {
       const data = await getProyectos();
       setProyectos(data);
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "No se pudieron cargar los proyectos.";
+      const message = err instanceof Error ? err.message : "No se pudieron cargar los proyectos.";
 
       setError(message);
     } finally {
       setLoadingProyectos(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    loadProyectos();
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void loadProyectos();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [loadProyectos]);
 
   const proyectosFiltrados = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -138,9 +131,9 @@ export default function ProyectosPage() {
     });
   }, [proyectos, search]);
 
-  const proyectosActivos = proyectos.filter(
-    (proyecto) => proyecto.estado === "activo"
-  ).length;
+  const proyectosActivos = useMemo(() => {
+    return proyectos.filter((proyecto) => proyecto.estado === "activo").length;
+  }, [proyectos]);
 
   function resetForm() {
     setNombre("");
@@ -170,8 +163,7 @@ export default function ProyectosPage() {
           router.push(`/proyectos/${proyecto.id}`);
         }
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "No se pudo crear el proyecto.";
+        const message = err instanceof Error ? err.message : "No se pudo crear el proyecto.";
 
         setError(message);
       }
@@ -211,9 +203,8 @@ export default function ProyectosPage() {
               </h1>
 
               <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-200 md:text-base">
-                Un proyecto agrupa ideas, objetivos, tareas, fechas y
-                recordatorios. Desde aquí entras al detalle del proyecto para
-                trabajar el flujo completo.
+                Un proyecto agrupa ideas, objetivos, tareas, fechas y recordatorios. Desde aquí
+                entras al detalle del proyecto para trabajar el flujo completo.
               </p>
 
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -232,13 +223,11 @@ export default function ProyectosPage() {
                 <Button
                   variant="outline"
                   className="rounded-2xl border-white/15 bg-white/10 text-white shadow-sm backdrop-blur-xl hover:bg-white/15"
-                  onClick={loadProyectos}
+                  onClick={() => void loadProyectos()}
                   disabled={loadingProyectos}
                 >
                   <RefreshCcw
-                    className={`mr-2 h-4 w-4 ${
-                      loadingProyectos ? "animate-spin" : ""
-                    }`}
+                    className={`mr-2 h-4 w-4 ${loadingProyectos ? "animate-spin" : ""}`}
                   />
                   {loadingProyectos ? "Actualizando..." : "Actualizar"}
                 </Button>
@@ -246,33 +235,25 @@ export default function ProyectosPage() {
             </div>
 
             <Card className="relative rounded-[2rem] border-white/10 bg-slate-950/72 p-6 text-white shadow-[0_18px_70px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-              <p className="text-sm font-semibold text-slate-300">
-                Flujo dentro de un proyecto
-              </p>
+              <p className="text-sm font-semibold text-slate-300">Flujo dentro de un proyecto</p>
 
               <div className="mt-5 grid gap-3">
-                {["Proyecto", "Objetivos", "Tareas", "Calendario"].map(
-                  (item, index) => (
-                    <div
-                      key={item}
-                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-xl"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-white text-xs font-black text-slate-950 shadow-sm">
-                          {index + 1}
-                        </span>
+                {["Proyecto", "Objetivos", "Tareas", "Calendario"].map((item, index) => (
+                  <div
+                    key={item}
+                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-xl"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-white text-xs font-black text-slate-950 shadow-sm">
+                        {index + 1}
+                      </span>
 
-                        <span className="text-sm font-semibold text-white">
-                          {item}
-                        </span>
-                      </div>
-
-                      {index < 3 ? (
-                        <ArrowRight className="h-4 w-4 text-slate-300" />
-                      ) : null}
+                      <span className="text-sm font-semibold text-white">{item}</span>
                     </div>
-                  )
-                )}
+
+                    {index < 3 ? <ArrowRight className="h-4 w-4 text-slate-300" /> : null}
+                  </div>
+                ))}
               </div>
             </Card>
           </div>
@@ -314,17 +295,11 @@ export default function ProyectosPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-3xl font-black text-white">
-                      {item.value}
-                    </p>
+                    <p className="text-3xl font-black text-white">{item.value}</p>
 
-                    <h3 className="mt-2 text-sm font-bold text-slate-100">
-                      {item.title}
-                    </h3>
+                    <h3 className="mt-2 text-sm font-bold text-slate-100">{item.title}</h3>
 
-                    <p className="mt-1 text-xs leading-5 text-slate-300">
-                      {item.description}
-                    </p>
+                    <p className="mt-1 text-xs leading-5 text-slate-300">{item.description}</p>
                   </div>
 
                   <div className="rounded-2xl bg-white/15 p-3 text-slate-100 ring-1 ring-white/10">
@@ -340,9 +315,7 @@ export default function ProyectosPage() {
           <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h2 className="text-xl font-black text-white">
-                  Proyectos reales
-                </h2>
+                <h2 className="text-xl font-black text-white">Proyectos reales</h2>
 
                 <p className="mt-1 text-sm text-slate-300">
                   Entra a un proyecto para crear objetivos y tareas.
@@ -363,17 +336,13 @@ export default function ProyectosPage() {
 
             {loadingProyectos ? (
               <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-6 text-center backdrop-blur-xl">
-                <p className="text-sm font-medium text-slate-200">
-                  Cargando proyectos...
-                </p>
+                <p className="text-sm font-medium text-slate-200">Cargando proyectos...</p>
               </div>
             ) : proyectos.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-6 text-center backdrop-blur-xl">
                 <FolderKanban className="mx-auto mb-3 h-8 w-8 text-slate-300" />
 
-                <p className="font-semibold text-white">
-                  Todavía no hay proyectos creados
-                </p>
+                <p className="font-semibold text-white">Todavía no hay proyectos creados</p>
 
                 <p className="mt-1 text-sm text-slate-300">
                   Crea tu primer proyecto desde el formulario de la derecha.
@@ -383,13 +352,9 @@ export default function ProyectosPage() {
               <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-6 text-center backdrop-blur-xl">
                 <Search className="mx-auto mb-3 h-8 w-8 text-slate-300" />
 
-                <p className="font-semibold text-white">
-                  No se encontraron proyectos
-                </p>
+                <p className="font-semibold text-white">No se encontraron proyectos</p>
 
-                <p className="mt-1 text-sm text-slate-300">
-                  Prueba con otro nombre o estado.
-                </p>
+                <p className="mt-1 text-sm text-slate-300">Prueba con otro nombre o estado.</p>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
@@ -402,8 +367,7 @@ export default function ProyectosPage() {
                     <div className="mb-4 flex items-start justify-between gap-3">
                       <div
                         className={`rounded-2xl p-3 ring-1 ${
-                          colorStyles[proyecto.color as ColorProyecto] ??
-                          colorStyles.slate
+                          colorStyles[proyecto.color as ColorProyecto] ?? colorStyles.slate
                         }`}
                       >
                         <FolderKanban className="h-5 w-5" />
@@ -434,9 +398,7 @@ export default function ProyectosPage() {
                         {proyecto.descripcion}
                       </p>
                     ) : (
-                      <p className="mt-2 text-sm text-slate-300">
-                        Sin descripción
-                      </p>
+                      <p className="mt-2 text-sm text-slate-300">Sin descripción</p>
                     )}
 
                     <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 text-xs font-bold text-slate-300">
@@ -463,9 +425,7 @@ export default function ProyectosPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">
-                    Nuevo proyecto
-                  </h2>
+                  <h2 className="text-lg font-black text-white">Nuevo proyecto</h2>
 
                   <p className="text-sm text-slate-300">
                     Crea un espacio para organizar ideas, objetivos y tareas.
@@ -475,10 +435,7 @@ export default function ProyectosPage() {
 
               <form onSubmit={handleSubmit} className="grid gap-4">
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="nombre"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="nombre" className="text-sm font-semibold text-slate-100">
                     Nombre
                   </label>
 
@@ -493,10 +450,7 @@ export default function ProyectosPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="descripcion"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="descripcion" className="text-sm font-semibold text-slate-100">
                     Descripción opcional
                   </label>
 
@@ -510,10 +464,7 @@ export default function ProyectosPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="color"
-                    className="text-sm font-semibold text-slate-100"
-                  >
+                  <label htmlFor="color" className="text-sm font-semibold text-slate-100">
                     Color
                   </label>
 
@@ -521,9 +472,7 @@ export default function ProyectosPage() {
                     id="color"
                     name="color"
                     value={color}
-                    onChange={(event) =>
-                      setColor(event.target.value as ColorProyecto)
-                    }
+                    onChange={(event) => setColor(event.target.value as ColorProyecto)}
                     className={selectClassName}
                   >
                     {coloresProyecto.map((item) => (
@@ -547,9 +496,7 @@ export default function ProyectosPage() {
             </Card>
 
             <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-              <h2 className="text-lg font-black text-white">
-                Estructura de un proyecto
-              </h2>
+              <h2 className="text-lg font-black text-white">Estructura de un proyecto</h2>
 
               <div className="mt-5 grid gap-3">
                 {[
@@ -566,9 +513,7 @@ export default function ProyectosPage() {
                       {index + 1}
                     </span>
 
-                    <p className="text-sm font-semibold text-slate-100">
-                      {item}
-                    </p>
+                    <p className="text-sm font-semibold text-slate-100">{item}</p>
                   </div>
                 ))}
               </div>

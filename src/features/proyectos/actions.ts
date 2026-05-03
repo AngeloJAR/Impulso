@@ -10,15 +10,7 @@ type CrearProyectoPayload = {
   color?: string;
 };
 
-const coloresPermitidos = [
-  "slate",
-  "amber",
-  "sky",
-  "emerald",
-  "violet",
-  "rose",
-  "indigo",
-] as const;
+const coloresPermitidos = ["slate", "amber", "sky", "emerald", "violet", "rose", "indigo"] as const;
 
 type ColorProyecto = (typeof coloresPermitidos)[number];
 
