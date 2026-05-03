@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   CalendarDays,
   CheckCircle2,
-  Clock3,
   FolderKanban,
   ListTodo,
   Plus,
@@ -28,6 +27,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+
+const inputClassName =
+  "rounded-2xl border-white/10 bg-white/10 text-white placeholder:text-slate-400 shadow-sm backdrop-blur-xl focus:border-white/30 focus:ring-4 focus:ring-white/10";
+
+const textareaClassName =
+  "min-h-28 rounded-2xl border-white/10 bg-white/10 text-white placeholder:text-slate-400 shadow-sm backdrop-blur-xl focus:border-white/30 focus:ring-4 focus:ring-white/10";
+
+const selectClassName =
+  "h-10 rounded-2xl border border-white/10 bg-slate-950/70 px-3 text-sm text-white shadow-sm outline-none transition focus:border-white/30 focus:ring-4 focus:ring-white/10";
 
 export default function NuevaTareaObjetivoPage() {
   const params = useParams<{ id: string }>();
@@ -112,6 +120,13 @@ export default function NuevaTareaObjetivoPage() {
         });
 
         setMessage("Tarea creada correctamente.");
+
+        if (fechaInicio || fechaLimite || recordatorio) {
+          router.push("/calendario");
+          router.refresh();
+          return;
+        }
+
         router.push(`/objetivos/${objetivoId}`);
         router.refresh();
       } catch (err) {
@@ -128,10 +143,13 @@ export default function NuevaTareaObjetivoPage() {
       title="Nueva tarea"
       description="Crea una tarea dentro del objetivo seleccionado."
     >
-      <div className="grid gap-6">
+      <div className="grid gap-6 text-white">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Link href={`/objetivos/${objetivoId}`}>
-            <Button variant="outline" className="rounded-2xl bg-white">
+            <Button
+              variant="outline"
+              className="rounded-2xl border-white/15 bg-white/10 text-white shadow-sm backdrop-blur-xl hover:bg-white/15"
+            >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver al objetivo
             </Button>
@@ -139,29 +157,30 @@ export default function NuevaTareaObjetivoPage() {
         </div>
 
         {error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <div className="rounded-2xl border border-red-300/30 bg-red-500/15 px-4 py-3 text-sm font-medium text-red-100 backdrop-blur-xl">
             {error}
           </div>
         ) : null}
 
         {message ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+          <div className="rounded-2xl border border-emerald-300/30 bg-emerald-500/15 px-4 py-3 text-sm font-medium text-emerald-100 backdrop-blur-xl">
             {message}
           </div>
         ) : null}
 
         <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
-          <Card className="rounded-[2rem] border-slate-200 bg-white p-6 shadow-sm">
+          <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
             <div className="mb-6 flex items-start gap-4">
-              <div className="rounded-2xl bg-violet-50 p-3 text-violet-600">
+              <div className="rounded-2xl bg-violet-300/20 p-3 text-violet-100 ring-1 ring-violet-200/20">
                 <ListTodo className="h-5 w-5" />
               </div>
 
               <div>
-                <h2 className="text-xl font-bold text-slate-950">
+                <h2 className="text-xl font-black text-white">
                   Crear tarea
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
+
+                <p className="mt-1 text-sm leading-6 text-slate-300">
                   Esta tarea quedará asociada directamente al objetivo actual.
                 </p>
               </div>
@@ -171,16 +190,17 @@ export default function NuevaTareaObjetivoPage() {
               <div className="grid gap-2">
                 <label
                   htmlFor="titulo"
-                  className="text-sm font-semibold text-slate-700"
+                  className="text-sm font-semibold text-slate-100"
                 >
                   Título
                 </label>
+
                 <Input
                   id="titulo"
                   value={titulo}
                   onChange={(event) => setTitulo(event.target.value)}
                   placeholder="Ej: Diseñar calendario de publicaciones"
-                  className="rounded-2xl"
+                  className={inputClassName}
                   required
                 />
               </div>
@@ -188,16 +208,17 @@ export default function NuevaTareaObjetivoPage() {
               <div className="grid gap-2">
                 <label
                   htmlFor="descripcion"
-                  className="text-sm font-semibold text-slate-700"
+                  className="text-sm font-semibold text-slate-100"
                 >
                   Descripción
                 </label>
+
                 <Textarea
                   id="descripcion"
                   value={descripcion}
                   onChange={(event) => setDescripcion(event.target.value)}
                   placeholder="Detalles, pasos o contexto de esta tarea..."
-                  className="min-h-28 rounded-2xl"
+                  className={textareaClassName}
                 />
               </div>
 
@@ -205,17 +226,18 @@ export default function NuevaTareaObjetivoPage() {
                 <div className="grid gap-2">
                   <label
                     htmlFor="prioridad"
-                    className="text-sm font-semibold text-slate-700"
+                    className="text-sm font-semibold text-slate-100"
                   >
                     Prioridad
                   </label>
+
                   <select
                     id="prioridad"
                     value={prioridad}
                     onChange={(event) =>
                       setPrioridad(event.target.value as PrioridadTarea)
                     }
-                    className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-xs outline-none transition focus:border-slate-400"
+                    className={selectClassName}
                   >
                     <option value="baja">Baja</option>
                     <option value="media">Media</option>
@@ -226,17 +248,18 @@ export default function NuevaTareaObjetivoPage() {
                 <div className="grid gap-2">
                   <label
                     htmlFor="estado"
-                    className="text-sm font-semibold text-slate-700"
+                    className="text-sm font-semibold text-slate-100"
                   >
                     Estado
                   </label>
+
                   <select
                     id="estado"
                     value={estado}
                     onChange={(event) =>
                       setEstado(event.target.value as EstadoTarea)
                     }
-                    className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-xs outline-none transition focus:border-slate-400"
+                    className={selectClassName}
                   >
                     <option value="pendiente">Pendiente</option>
                     <option value="hoy">Hoy</option>
@@ -251,48 +274,51 @@ export default function NuevaTareaObjetivoPage() {
                 <div className="grid gap-2">
                   <label
                     htmlFor="fechaInicio"
-                    className="text-sm font-semibold text-slate-700"
+                    className="text-sm font-semibold text-slate-100"
                   >
                     Inicio
                   </label>
+
                   <Input
                     id="fechaInicio"
                     type="date"
                     value={fechaInicio}
                     onChange={(event) => setFechaInicio(event.target.value)}
-                    className="rounded-2xl"
+                    className={inputClassName}
                   />
                 </div>
 
                 <div className="grid gap-2">
                   <label
                     htmlFor="fechaLimite"
-                    className="text-sm font-semibold text-slate-700"
+                    className="text-sm font-semibold text-slate-100"
                   >
                     Fin
                   </label>
+
                   <Input
                     id="fechaLimite"
                     type="date"
                     value={fechaLimite}
                     onChange={(event) => setFechaLimite(event.target.value)}
-                    className="rounded-2xl"
+                    className={inputClassName}
                   />
                 </div>
 
                 <div className="grid gap-2">
                   <label
                     htmlFor="recordatorio"
-                    className="text-sm font-semibold text-slate-700"
+                    className="text-sm font-semibold text-slate-100"
                   >
                     Recordatorio
                   </label>
+
                   <Input
                     id="recordatorio"
                     type="date"
                     value={recordatorio}
                     onChange={(event) => setRecordatorio(event.target.value)}
-                    className="rounded-2xl"
+                    className={inputClassName}
                   />
                 </div>
               </div>
@@ -300,7 +326,7 @@ export default function NuevaTareaObjetivoPage() {
               <Button
                 type="submit"
                 size="lg"
-                className="mt-2 rounded-2xl"
+                className="mt-2 rounded-2xl bg-white text-slate-950 hover:bg-slate-100"
                 disabled={isPending}
               >
                 <Plus className="mr-2 h-5 w-5" />
@@ -310,84 +336,88 @@ export default function NuevaTareaObjetivoPage() {
           </Card>
 
           <aside className="grid h-fit gap-6">
-            <Card className="rounded-[2rem] border-slate-200 bg-slate-950 p-6 text-white shadow-sm">
+            <Card className="rounded-[2rem] border-white/10 bg-slate-950/72 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
               <div className="mb-5 flex items-center gap-3">
-                <div className="rounded-2xl bg-white/10 p-3">
+                <div className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/10">
                   <Target className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-bold">Objetivo</h2>
-                  <p className="text-sm text-slate-400">
+                  <h2 className="text-lg font-black text-white">Objetivo</h2>
+
+                  <p className="text-sm text-slate-300">
                     La tarea se creará aquí.
                   </p>
                 </div>
               </div>
 
               {loadingObjetivo ? (
-                <p className="text-sm text-slate-400">Cargando objetivo...</p>
+                <p className="text-sm text-slate-300">Cargando objetivo...</p>
               ) : objetivo ? (
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                  <p className="font-semibold">{objetivo.titulo}</p>
+                <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl">
+                  <p className="font-black text-white">{objetivo.titulo}</p>
+
                   <p className="mt-2 text-sm leading-6 text-slate-300">
                     {objetivo.descripcion || "Sin descripción"}
                   </p>
 
                   {objetivo.proyecto ? (
-                    <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200">
+                    <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-sky-200/20 bg-sky-300/15 px-3 py-1 text-xs font-semibold text-sky-100 backdrop-blur-xl">
                       <FolderKanban className="h-3.5 w-3.5" />
                       {objetivo.proyecto.nombre}
                     </div>
                   ) : null}
                 </div>
               ) : (
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-slate-300">
                   Objetivo no encontrado.
                 </p>
               )}
             </Card>
 
-            <Card className="rounded-[2rem] border-slate-200 bg-white p-6 shadow-sm">
+            <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
               <div className="mb-5 flex items-center gap-3">
-                <div className="rounded-2xl bg-sky-50 p-3 text-sky-600">
+                <div className="rounded-2xl bg-sky-300/20 p-3 text-sky-100 ring-1 ring-sky-200/20">
                   <CalendarDays className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-bold text-slate-950">
+                  <h2 className="text-lg font-black text-white">
                     Regla de fechas
                   </h2>
-                  <p className="text-sm text-slate-500">
+
+                  <p className="text-sm text-slate-300">
                     Evitar tareas cruzadas.
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm leading-6 text-slate-600">
+              <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl">
+                <p className="text-sm leading-6 text-slate-300">
                   Si ya existe una tarea activa dentro de este objetivo con un
                   rango cruzado, el sistema bloqueará la creación.
                 </p>
               </div>
             </Card>
 
-            <Card className="rounded-[2rem] border-slate-200 bg-white p-6 shadow-sm">
+            <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
               <div className="mb-5 flex items-center gap-3">
-                <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
+                <div className="rounded-2xl bg-emerald-300/20 p-3 text-emerald-100 ring-1 ring-emerald-200/20">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-bold text-slate-950">
+                  <h2 className="text-lg font-black text-white">
                     Después de crear
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    Volverás al objetivo.
+
+                  <p className="text-sm text-slate-300">
+                    Volverás al objetivo o al calendario.
                   </p>
                 </div>
               </div>
 
-              <p className="text-sm leading-6 text-slate-500">
+              <p className="text-sm leading-6 text-slate-300">
                 La tarea aparecerá en el detalle del objetivo y en el calendario
                 según su rango de fechas.
               </p>

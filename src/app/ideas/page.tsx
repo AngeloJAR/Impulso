@@ -64,17 +64,17 @@ const estadosIdea: {
 ];
 
 const prioridadStyles: Record<PrioridadIdea, string> = {
-  baja: "bg-slate-100 text-slate-600 ring-slate-200",
-  media: "bg-amber-100 text-amber-700 ring-amber-200",
-  alta: "bg-rose-100 text-rose-700 ring-rose-200",
+  baja: "bg-slate-300/15 text-slate-200 ring-white/10",
+  media: "bg-amber-300/20 text-amber-100 ring-amber-200/20",
+  alta: "bg-rose-300/20 text-rose-100 ring-rose-200/20",
 };
 
 const estadoStyles: Record<EstadoIdea, string> = {
-  nueva: "bg-amber-50 text-amber-700 ring-amber-100",
-  revisar: "bg-sky-50 text-sky-700 ring-sky-100",
-  convertir_en_tarea: "bg-violet-50 text-violet-700 ring-violet-100",
-  convertida: "bg-emerald-50 text-emerald-700 ring-emerald-100",
-  archivada: "bg-slate-100 text-slate-500 ring-slate-200",
+  nueva: "bg-amber-300/20 text-amber-100 ring-amber-200/20",
+  revisar: "bg-sky-300/20 text-sky-100 ring-sky-200/20",
+  convertir_en_tarea: "bg-violet-300/20 text-violet-100 ring-violet-200/20",
+  convertida: "bg-emerald-300/20 text-emerald-100 ring-emerald-200/20",
+  archivada: "bg-slate-300/15 text-slate-200 ring-white/10",
 };
 
 function formatFecha(value?: string | null) {
@@ -112,7 +112,7 @@ function IdeaCard({
   const isUpdating = isPending && updatingIdeaId === idea.id;
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow-md">
+    <div className="rounded-3xl border border-white/10 bg-white/10 p-4 text-white shadow-[0_18px_70px_rgba(2,6,23,0.18)] backdrop-blur-2xl transition hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/15 hover:shadow-[0_24px_90px_rgba(2,6,23,0.26)]">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span
           className={`rounded-full px-3 py-1 text-xs font-bold capitalize ring-1 ${
@@ -131,12 +131,12 @@ function IdeaCard({
         </span>
       </div>
 
-      <h4 className="line-clamp-2 text-base font-black leading-6 text-slate-950">
+      <h4 className="line-clamp-2 text-base font-black leading-6 text-white">
         {idea.titulo}
       </h4>
 
       {idea.descripcion ? (
-        <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-500">
+        <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-300">
           {idea.descripcion}
         </p>
       ) : (
@@ -145,17 +145,17 @@ function IdeaCard({
 
       <div className="mt-3 flex flex-wrap gap-2">
         {idea.proyecto ? (
-          <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700 ring-1 ring-sky-100">
+          <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-sky-200/20 bg-sky-300/15 px-3 py-1 text-xs font-bold text-sky-100 backdrop-blur-xl">
             <FolderKanban className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">{idea.proyecto.nombre}</span>
           </span>
         ) : (
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-400 ring-1 ring-slate-200">
+          <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-slate-300 backdrop-blur-xl">
             Sin proyecto
           </span>
         )}
 
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-400 ring-1 ring-slate-200">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-slate-300 backdrop-blur-xl">
           <Clock3 className="h-3.5 w-3.5" />
           {formatFecha(idea.fecha_recordatorio)}
         </span>
@@ -164,7 +164,7 @@ function IdeaCard({
       <div className="mt-4 grid gap-2">
         <label
           htmlFor={`estado-${idea.id}`}
-          className="text-xs font-bold text-slate-500"
+          className="text-xs font-bold text-slate-300"
         >
           Cambiar estado
         </label>
@@ -176,7 +176,7 @@ function IdeaCard({
           onChange={(event) =>
             onCambiarEstado(idea.id, event.target.value as EstadoIdea)
           }
-          className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-10 rounded-2xl border border-white/10 bg-slate-950/70 px-3 text-xs font-bold text-white outline-none transition focus:border-white/30 focus:ring-4 focus:ring-white/10 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {estadosIdea.map((estado) => (
             <option key={estado.key} value={estado.key}>
@@ -190,7 +190,7 @@ function IdeaCard({
             <Button
               type="button"
               size="sm"
-              className="h-10 w-full rounded-2xl font-bold"
+              className="h-10 w-full rounded-2xl bg-white font-bold text-slate-950 hover:bg-slate-100"
             >
               <CheckCircle2 className="mr-2 h-4 w-4" />
               Crear tarea
@@ -300,40 +300,40 @@ export default function IdeasPage() {
       title="Ideas"
       description="Pensamientos capturados que todavía no son tareas."
     >
-      <div className="grid gap-4">
+      <div className="grid gap-4 text-white">
         {error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          <div className="rounded-2xl border border-red-300/30 bg-red-500/15 px-4 py-3 text-sm font-semibold text-red-100 backdrop-blur-xl">
             {error}
           </div>
         ) : null}
 
         {message ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+          <div className="rounded-2xl border border-emerald-300/30 bg-emerald-500/15 px-4 py-3 text-sm font-semibold text-emerald-100 backdrop-blur-xl">
             {message}
           </div>
         ) : null}
 
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
-          <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6">
+        <section className="rounded-[1.75rem] border border-white/10 bg-slate-950/44 shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
+          <div className="flex flex-col gap-4 border-b border-white/10 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-sm">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-slate-950 shadow-sm">
                 <Lightbulb className="h-5 w-5" />
               </span>
 
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="truncate text-xl font-black tracking-tight text-slate-950 md:text-2xl">
+                  <h2 className="truncate text-xl font-black tracking-tight text-white md:text-2xl">
                     Panel de ideas
                   </h2>
 
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">
+                  <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-slate-200 backdrop-blur-xl">
                     {loadingIdeas
                       ? "Cargando..."
                       : `${ideas.length} idea${ideas.length === 1 ? "" : "s"}`}
                   </span>
                 </div>
 
-                <p className="mt-1 text-sm leading-5 text-slate-500">
+                <p className="mt-1 text-sm leading-5 text-slate-300">
                   Revisa, filtra y convierte ideas en tareas cuando ya estén
                   claras.
                 </p>
@@ -342,18 +342,18 @@ export default function IdeasPage() {
 
             <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto md:items-center">
               <div className="relative w-full md:w-[320px]">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-300" />
 
                 <input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Buscar idea..."
-                  className="h-10 w-full rounded-2xl border border-slate-200 bg-white pl-10 pr-4 text-sm font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-4 focus:ring-slate-100"
+                  className="h-10 w-full rounded-2xl border border-white/10 bg-white/10 pl-10 pr-4 text-sm font-semibold text-white outline-none backdrop-blur-xl transition placeholder:text-slate-300 focus:border-white/30 focus:bg-white/15 focus:ring-4 focus:ring-white/10"
                 />
               </div>
 
               <Link href="/nueva-idea">
-                <Button className="h-10 w-full rounded-2xl px-4 font-bold shadow-sm sm:w-auto">
+                <Button className="h-10 w-full rounded-2xl bg-white px-4 font-bold text-slate-950 shadow-sm hover:bg-slate-100 sm:w-auto">
                   <Plus className="mr-2 h-4 w-4" />
                   Nueva idea
                 </Button>
@@ -362,7 +362,7 @@ export default function IdeasPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="h-10 rounded-2xl border-slate-200 bg-white px-4 font-bold shadow-sm"
+                className="h-10 rounded-2xl border-white/15 bg-white/10 px-4 font-bold text-white shadow-sm backdrop-blur-xl hover:bg-white/15"
                 onClick={loadIdeas}
                 disabled={loadingIdeas}
               >
@@ -389,16 +389,16 @@ export default function IdeasPage() {
                   onClick={() => setEstadoActivo(active ? "todas" : item.key)}
                   className={`rounded-3xl border p-4 text-left transition ${
                     active
-                      ? "border-slate-950 bg-slate-950 text-white shadow-sm"
-                      : "border-slate-200 bg-slate-50 text-slate-950 hover:border-slate-300 hover:bg-white"
+                      ? "border-white bg-white text-slate-950 shadow-sm"
+                      : "border-white/10 bg-white/10 text-white backdrop-blur-xl hover:border-white/25 hover:bg-white/15"
                   }`}
                 >
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div
                       className={`rounded-2xl p-3 ${
                         active
-                          ? "bg-white/10 text-white"
-                          : "bg-white text-slate-700 shadow-sm ring-1 ring-slate-200"
+                          ? "bg-slate-950 text-white"
+                          : "bg-white/15 text-slate-100 shadow-sm ring-1 ring-white/10"
                       }`}
                     >
                       <Icon className="h-5 w-5" />
@@ -407,8 +407,8 @@ export default function IdeasPage() {
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-black ${
                         active
-                          ? "bg-white/10 text-white"
-                          : "bg-white text-slate-500 ring-1 ring-slate-200"
+                          ? "bg-slate-950 text-white"
+                          : "bg-white/15 text-slate-100 ring-1 ring-white/10"
                       }`}
                     >
                       {total}
@@ -418,7 +418,7 @@ export default function IdeasPage() {
                   <h3 className="font-black">{item.title}</h3>
                   <p
                     className={`mt-1 text-sm leading-5 ${
-                      active ? "text-slate-300" : "text-slate-500"
+                      active ? "text-slate-700" : "text-slate-300"
                     }`}
                   >
                     {item.description}
@@ -429,16 +429,16 @@ export default function IdeasPage() {
           </div>
         </section>
 
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+        <section className="rounded-[1.75rem] border border-white/10 bg-slate-950/44 p-5 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl md:p-6">
           <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-xl font-black text-slate-950">
+              <h2 className="text-xl font-black text-white">
                 {estadoActivo === "todas"
                   ? "Todas las ideas"
                   : `Ideas: ${getEstadoLabel(estadoActivo)}`}
               </h2>
 
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-300">
                 {loadingIdeas
                   ? "Cargando ideas..."
                   : `${ideasFiltradas.length} resultado${
@@ -451,7 +451,7 @@ export default function IdeasPage() {
               <button
                 type="button"
                 onClick={() => setEstadoActivo("todas")}
-                className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500 transition hover:bg-slate-200"
+                className="w-fit rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-slate-200 backdrop-blur-xl transition hover:bg-white/15"
               >
                 Limpiar filtro
               </button>
@@ -463,43 +463,43 @@ export default function IdeasPage() {
               {[1, 2, 3].map((item) => (
                 <div
                   key={item}
-                  className="h-60 animate-pulse rounded-3xl border border-slate-200 bg-slate-50"
+                  className="h-60 animate-pulse rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl"
                 />
               ))}
             </div>
           ) : ideas.length === 0 ? (
-            <Card className="rounded-3xl border-dashed border-slate-300 bg-slate-50 p-8 text-center shadow-none">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-3xl bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">
+            <Card className="rounded-3xl border-dashed border-white/20 bg-white/10 p-8 text-center text-white shadow-none backdrop-blur-2xl">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-3xl bg-white/15 text-amber-100 shadow-sm ring-1 ring-white/10">
                 <Lightbulb className="h-6 w-6" />
               </div>
 
-              <p className="text-lg font-black text-slate-900">
+              <p className="text-lg font-black text-white">
                 Todavía no hay ideas
               </p>
 
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-300">
                 Crea una nueva idea para verla aquí y decidir si se convierte en
                 tarea.
               </p>
 
               <Link href="/nueva-idea">
-                <Button className="mt-5 rounded-2xl font-bold">
+                <Button className="mt-5 rounded-2xl bg-white font-bold text-slate-950 hover:bg-slate-100">
                   <Plus className="mr-2 h-4 w-4" />
                   Crear idea
                 </Button>
               </Link>
             </Card>
           ) : ideasFiltradas.length === 0 ? (
-            <Card className="rounded-3xl border-dashed border-slate-300 bg-slate-50 p-8 text-center shadow-none">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-3xl bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">
+            <Card className="rounded-3xl border-dashed border-white/20 bg-white/10 p-8 text-center text-white shadow-none backdrop-blur-2xl">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-3xl bg-white/15 text-slate-100 shadow-sm ring-1 ring-white/10">
                 <Search className="h-6 w-6" />
               </div>
 
-              <p className="text-lg font-black text-slate-900">
+              <p className="text-lg font-black text-white">
                 No se encontraron ideas
               </p>
 
-              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-300">
                 Prueba con otro texto o cambia el filtro de estado.
               </p>
             </Card>

@@ -20,17 +20,23 @@ const coloresPermitidos = [
   "indigo",
 ] as const;
 
+type ColorProyecto = (typeof coloresPermitidos)[number];
+
+function validarColorProyecto(color: string): ColorProyecto {
+  if (coloresPermitidos.includes(color as ColorProyecto)) {
+    return color as ColorProyecto;
+  }
+
+  throw new Error("Selecciona un color válido.");
+}
+
 export async function crearProyecto(payload: CrearProyectoPayload) {
   const nombre = payload.nombre.trim();
   const descripcion = payload.descripcion?.trim() || null;
-  const color = payload.color?.trim() || "slate";
+  const color = validarColorProyecto(payload.color?.trim() || "slate");
 
   if (!nombre) {
     throw new Error("Escribe un nombre para el proyecto.");
-  }
-
-  if (!coloresPermitidos.includes(color as (typeof coloresPermitidos)[number])) {
-    throw new Error("Selecciona un color válido.");
   }
 
   const supabase = await createSupabaseServerClient();
@@ -66,6 +72,7 @@ export async function crearProyecto(payload: CrearProyectoPayload) {
 
   revalidatePath("/");
   revalidatePath("/proyectos");
+  revalidatePath(`/proyectos/${data.id}`);
   revalidatePath("/inbox");
 
   return data;

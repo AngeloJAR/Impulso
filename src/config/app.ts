@@ -2,7 +2,10 @@ import {
   Bell,
   CalendarDays,
   FolderKanban,
+  Lightbulb,
+  ListTodo,
   RotateCcw,
+  Target,
 } from "lucide-react";
 
 export const appConfig = {
@@ -17,7 +20,31 @@ export const mainNavigation = [
     title: "Dashboard",
     href: "/",
     icon: FolderKanban,
-    description: "Proyectos activos y acceso rápido para iniciar una nueva idea.",
+    description: "Inicio del flujo, proyectos activos y acceso rápido.",
+  },
+  {
+    title: "Nueva idea",
+    href: "/nueva-idea",
+    icon: Lightbulb,
+    description: "Captura una idea y conviértela en proyecto, objetivo o tarea.",
+  },
+  {
+    title: "Proyectos",
+    href: "/proyectos",
+    icon: FolderKanban,
+    description: "Organiza tus ideas por áreas, negocios o iniciativas.",
+  },
+  {
+    title: "Objetivos",
+    href: "/objetivos",
+    icon: Target,
+    description: "Define metas claras dentro de cada proyecto.",
+  },
+  {
+    title: "Tareas",
+    href: "/tareas",
+    icon: ListTodo,
+    description: "Convierte objetivos en acciones concretas.",
   },
   {
     title: "Calendario",
@@ -40,8 +67,11 @@ export const mainNavigation = [
 ] as const;
 
 export const flowRoutes = {
-  nuevaIdea: "/nueva-idea",
   dashboard: "/",
+  nuevaIdea: "/nueva-idea",
+  proyectos: "/proyectos",
+  objetivos: "/objetivos",
+  tareas: "/tareas",
   calendario: "/calendario",
   recordatorios: "/recordatorios",
   revisionSemanal: "/revision-semanal",

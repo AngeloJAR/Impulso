@@ -4,239 +4,277 @@ export type CalendarioTarea = {
     id: string;
     titulo: string;
     descripcion: string | null;
-    prioridad: "baja" | "media" | "alta";
     estado: "pendiente" | "hoy" | "en_proceso" | "bloqueada" | "terminada";
+    prioridad: "baja" | "media" | "alta";
     fecha: string | null;
     fecha_inicio: string | null;
     fecha_limite: string | null;
     recordatorio: string | null;
-    completada: boolean;
+    proyecto_id: string | null;
+    objetivo_id: string | null;
     proyecto: {
         id: string;
         nombre: string;
-        color: "slate" | "amber" | "sky" | "emerald" | "violet" | "rose" | "indigo";
+        color: string;
+    } | null;
+    objetivo: {
+        id: string;
+        titulo: string;
     } | null;
 };
 
+export type CalendarioEventoTipo =
+    | "inicio"
+    | "limite"
+    | "recordatorio"
+    | "fecha";
+
+export type CalendarioEvento = {
+    id: string;
+    tareaId: string;
+    tipo: CalendarioEventoTipo;
+    titulo: string;
+    descripcion: string | null;
+    fecha: string;
+    estado: CalendarioTarea["estado"];
+    prioridad: CalendarioTarea["prioridad"];
+    proyecto: CalendarioTarea["proyecto"];
+    objetivo: CalendarioTarea["objetivo"];
+};
+
 export type CalendarioMetricas = {
+    totalTareas: number;
     tareasHoy: number;
+    tareasVencidas: number;
+    recordatorios: number;
+
+    tareasSemana: CalendarioTarea[];
     tareasProximas: number;
+    tareasProximasLista: CalendarioTarea[];
     recordatoriosProximos: number;
     tareasTerminadas: number;
     tareasHoyLista: CalendarioTarea[];
-    tareasProximasLista: CalendarioTarea[];
     recordatoriosLista: CalendarioTarea[];
-    tareasSemana: CalendarioTarea[];
 };
 
-type ProyectoRelacion =
-    | {
-        id: string;
-        nombre: string;
-        color:
-        | "slate"
-        | "amber"
-        | "sky"
-        | "emerald"
-        | "violet"
-        | "rose"
-        | "indigo";
-    }
-    | {
-        id: string;
-        nombre: string;
-        color:
-        | "slate"
-        | "amber"
-        | "sky"
-        | "emerald"
-        | "violet"
-        | "rose"
-        | "indigo";
-    }[]
-    | null;
-
-type CalendarioTareaRow = {
-    id: string;
-    titulo: string;
-    descripcion: string | null;
-    prioridad: "baja" | "media" | "alta";
-    estado: "pendiente" | "hoy" | "en_proceso" | "bloqueada" | "terminada";
-    fecha: string | null;
-    fecha_inicio: string | null;
-    fecha_limite: string | null;
-    recordatorio: string | null;
-    completada: boolean;
-    proyectos: ProyectoRelacion;
-};
-function normalizarProyecto(proyectos: ProyectoRelacion) {
-    if (Array.isArray(proyectos)) {
-        return proyectos[0] ?? null;
-    }
-
-    return proyectos;
+function buildEventoId(tareaId: string, tipo: CalendarioEventoTipo) {
+    return `${tareaId}-${tipo}`;
 }
 
-function getDateInEcuador(date: Date) {
-    return new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/Guayaquil",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-    }).format(date);
+function buildTituloEvento(tarea: CalendarioTarea, tipo: CalendarioEventoTipo) {
+    if (tipo === "inicio") return `Inicio: ${tarea.titulo}`;
+    if (tipo === "limite") return `Límite: ${tarea.titulo}`;
+    if (tipo === "recordatorio") return `Recordatorio: ${tarea.titulo}`;
+
+    return tarea.titulo;
 }
 
-function addDays(date: Date, days: number) {
-    const nextDate = new Date(date);
-    nextDate.setDate(nextDate.getDate() + days);
-    return nextDate;
-}
+function crearEvento(
+    tarea: CalendarioTarea,
+    tipo: CalendarioEventoTipo,
+    fecha: string | null
+): CalendarioEvento | null {
+    if (!fecha) return null;
 
-function normalizeRows(rows: CalendarioTareaRow[]): CalendarioTarea[] {
-    return rows.map((tarea) => ({
-        id: tarea.id,
-        titulo: tarea.titulo,
+    return {
+        id: buildEventoId(tarea.id, tipo),
+        tareaId: tarea.id,
+        tipo,
+        titulo: buildTituloEvento(tarea, tipo),
         descripcion: tarea.descripcion,
-        prioridad: tarea.prioridad,
+        fecha,
         estado: tarea.estado,
-        fecha: tarea.fecha,
-        fecha_inicio: tarea.fecha_inicio,
-        fecha_limite: tarea.fecha_limite,
-        recordatorio: tarea.recordatorio,
-        completada: tarea.completada,
-        proyecto: normalizarProyecto(tarea.proyectos),
-    }));
+        prioridad: tarea.prioridad,
+        proyecto: tarea.proyecto,
+        objetivo: tarea.objetivo,
+    };
+}
+
+function ordenarEventosPorFecha(eventos: CalendarioEvento[]) {
+    return [...eventos].sort((a, b) => {
+        const fechaA = new Date(a.fecha).getTime();
+        const fechaB = new Date(b.fecha).getTime();
+
+        if (Number.isNaN(fechaA) && Number.isNaN(fechaB)) return 0;
+        if (Number.isNaN(fechaA)) return 1;
+        if (Number.isNaN(fechaB)) return -1;
+
+        return fechaA - fechaB;
+    });
+}
+
+export async function getCalendarioTareas(): Promise<CalendarioTarea[]> {
+
+    const { data, error } = await supabase
+        .from("tareas")
+        .select(
+            `
+      id,
+      titulo,
+      descripcion,
+      estado,
+      prioridad,
+      fecha,
+      fecha_inicio,
+      fecha_limite,
+      recordatorio,
+      proyecto_id,
+      objetivo_id,
+      proyecto:proyectos (
+        id,
+        nombre,
+        color
+      ),
+      objetivo:objetivos (
+        id,
+        titulo
+      )
+    `
+        )
+        .or(
+            "fecha.not.is.null,fecha_inicio.not.is.null,fecha_limite.not.is.null,recordatorio.not.is.null"
+        )
+        .order("fecha_inicio", { ascending: true, nullsFirst: false })
+        .order("fecha_limite", { ascending: true, nullsFirst: false })
+        .order("recordatorio", { ascending: true, nullsFirst: false })
+        .order("fecha", { ascending: true, nullsFirst: false });
+
+    if (error) {
+        throw new Error(error.message);
+    }
+
+    return (data ?? []).map((tarea) => ({
+        ...tarea,
+        proyecto: Array.isArray(tarea.proyecto)
+            ? tarea.proyecto[0] ?? null
+            : tarea.proyecto ?? null,
+        objetivo: Array.isArray(tarea.objetivo)
+            ? tarea.objetivo[0] ?? null
+            : tarea.objetivo ?? null,
+    })) as CalendarioTarea[];
+}
+
+export async function getCalendarioEventos(): Promise<CalendarioEvento[]> {
+    const tareas = await getCalendarioTareas();
+
+    const eventos = tareas.flatMap((tarea) => {
+        const eventosTarea: Array<CalendarioEvento | null> = [
+            crearEvento(tarea, "fecha", tarea.fecha),
+            crearEvento(tarea, "inicio", tarea.fecha_inicio),
+            crearEvento(tarea, "limite", tarea.fecha_limite),
+            crearEvento(tarea, "recordatorio", tarea.recordatorio),
+        ];
+
+        return eventosTarea.filter(Boolean) as CalendarioEvento[];
+    });
+
+    return ordenarEventosPorFecha(eventos);
 }
 
 export async function getCalendarioMetricas(): Promise<CalendarioMetricas> {
-    const {
-        data: { user },
-        error: userError,
-    } = await supabase.auth.getUser();
+    const tareas = await getCalendarioTareas();
 
-    if (userError) {
-        throw new Error(userError.message);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const finSemana = new Date(hoy);
+    finSemana.setDate(hoy.getDate() + 7);
+
+    const hoyISO = hoy.toISOString().slice(0, 10);
+    const finSemanaISO = finSemana.toISOString().slice(0, 10);
+
+    function getFechaPrincipal(tarea: CalendarioTarea) {
+        return (
+            tarea.fecha_inicio ||
+            tarea.fecha_limite ||
+            tarea.fecha ||
+            tarea.recordatorio ||
+            null
+        );
     }
 
-    if (!user) {
-        return {
-            tareasHoy: 0,
-            tareasProximas: 0,
-            recordatoriosProximos: 0,
-            tareasTerminadas: 0,
-            tareasHoyLista: [],
-            tareasProximasLista: [],
-            recordatoriosLista: [],
-            tareasSemana: [],
-        };
+    function tareaEsHoy(tarea: CalendarioTarea) {
+        return (
+            tarea.fecha === hoyISO ||
+            tarea.fecha_inicio === hoyISO ||
+            tarea.fecha_limite === hoyISO ||
+            tarea.recordatorio === hoyISO
+        );
     }
 
-    const today = getDateInEcuador(new Date());
-    const nextSevenDays = getDateInEcuador(addDays(new Date(), 7));
+    function tareaEstaEnSemana(tarea: CalendarioTarea) {
+        const fechas = [
+            tarea.fecha,
+            tarea.fecha_inicio,
+            tarea.fecha_limite,
+            tarea.recordatorio,
+        ].filter(Boolean) as string[];
 
-    const baseSelect = `
-    id,
-    titulo,
-    descripcion,
-    prioridad,
-    estado,
-    fecha,
-    fecha_inicio,
-    fecha_limite,
-    recordatorio,
-    completada,
-    proyectos (
-      id,
-      nombre,
-      color
-    )
-  `;
-
-    const [
-        tareasHoyResult,
-        tareasProximasResult,
-        recordatoriosResult,
-        tareasTerminadasResult,
-        tareasSemanaResult,
-    ] = await Promise.all([
-        supabase
-            .from("tareas")
-            .select(baseSelect)
-            .eq("user_id", user.id)
-            .neq("estado", "terminada")
-            .or(`fecha.eq.${today},fecha_inicio.eq.${today},estado.eq.hoy`)
-            .order("created_at", { ascending: false }),
-
-        supabase
-            .from("tareas")
-            .select(baseSelect)
-            .eq("user_id", user.id)
-            .neq("estado", "terminada")
-            .or(`fecha_inicio.gte.${today},fecha.gte.${today}`)
-            .or(`fecha_inicio.lte.${nextSevenDays},fecha.lte.${nextSevenDays}`)
-            .order("fecha_inicio", { ascending: true }),
-
-        supabase
-            .from("tareas")
-            .select(baseSelect)
-            .eq("user_id", user.id)
-            .neq("estado", "terminada")
-            .not("recordatorio", "is", null)
-            .order("recordatorio", { ascending: true }),
-
-        supabase
-            .from("tareas")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", user.id)
-            .eq("estado", "terminada"),
-
-        supabase
-            .from("tareas")
-            .select(baseSelect)
-            .eq("user_id", user.id)
-            .or(`fecha_inicio.gte.${today},fecha.gte.${today}`)
-            .or(`fecha_inicio.lte.${nextSevenDays},fecha.lte.${nextSevenDays}`)
-            .order("fecha_inicio", { ascending: true }),
-    ]);
-
-    const results = [
-        tareasHoyResult,
-        tareasProximasResult,
-        recordatoriosResult,
-        tareasTerminadasResult,
-        tareasSemanaResult,
-    ];
-
-    const firstError = results.find((result) => result.error)?.error;
-
-    if (firstError) {
-        throw new Error(firstError.message);
+        return fechas.some((fecha) => fecha >= hoyISO && fecha <= finSemanaISO);
     }
 
-    const tareasHoyLista = normalizeRows(
-        (tareasHoyResult.data ?? []) as unknown as CalendarioTareaRow[]
-    );
+    function tareaEstaVencida(tarea: CalendarioTarea) {
+        if (tarea.estado === "terminada") return false;
 
-    const tareasProximasLista = normalizeRows(
-        (tareasProximasResult.data ?? []) as unknown as CalendarioTareaRow[]
-    );
+        const fechaReferencia =
+            tarea.fecha_limite || tarea.fecha || tarea.recordatorio || tarea.fecha_inicio;
 
-    const recordatoriosLista = normalizeRows(
-        (recordatoriosResult.data ?? []) as unknown as CalendarioTareaRow[]
-    );
+        if (!fechaReferencia) return false;
 
-    const tareasSemana = normalizeRows(
-        (tareasSemanaResult.data ?? []) as unknown as CalendarioTareaRow[]
-    );
+        return fechaReferencia < hoyISO;
+    }
+
+    const tareasHoyLista = tareas
+        .filter(tareaEsHoy)
+        .sort((a, b) => {
+            const fechaA = getFechaPrincipal(a) ?? "";
+            const fechaB = getFechaPrincipal(b) ?? "";
+
+            return fechaA.localeCompare(fechaB);
+        });
+
+    const tareasSemana = tareas
+        .filter(tareaEstaEnSemana)
+        .sort((a, b) => {
+            const fechaA = getFechaPrincipal(a) ?? "";
+            const fechaB = getFechaPrincipal(b) ?? "";
+
+            return fechaA.localeCompare(fechaB);
+        });
+
+    const recordatoriosLista = tareas
+        .filter((tarea) => Boolean(tarea.recordatorio))
+        .sort((a, b) => {
+            const fechaA = a.recordatorio ?? "";
+            const fechaB = b.recordatorio ?? "";
+
+            return fechaA.localeCompare(fechaB);
+        });
+
+    const recordatoriosProximos = recordatoriosLista.filter((tarea) => {
+        if (!tarea.recordatorio) return false;
+
+        return tarea.recordatorio >= hoyISO && tarea.recordatorio <= finSemanaISO;
+    }).length;
+
+    const tareasTerminadas = tareas.filter(
+        (tarea) => tarea.estado === "terminada"
+    ).length;
+
+    const tareasVencidas = tareas.filter(tareaEstaVencida).length;
 
     return {
+        totalTareas: tareas.length,
         tareasHoy: tareasHoyLista.length,
-        tareasProximas: tareasProximasLista.length,
-        recordatoriosProximos: recordatoriosLista.length,
-        tareasTerminadas: tareasTerminadasResult.count ?? 0,
-        tareasHoyLista,
-        tareasProximasLista,
-        recordatoriosLista,
+        tareasVencidas,
+        recordatorios: recordatoriosLista.length,
+
         tareasSemana,
+        tareasProximas: tareasSemana.length,
+        tareasProximasLista: tareasSemana,
+        recordatoriosProximos,
+        tareasTerminadas,
+        tareasHoyLista,
+        recordatoriosLista,
     };
 }

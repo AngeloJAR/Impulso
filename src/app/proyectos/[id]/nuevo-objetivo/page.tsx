@@ -23,6 +23,15 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
+const inputClassName =
+  "rounded-2xl border-white/10 bg-white/10 text-white placeholder:text-slate-400 shadow-sm backdrop-blur-xl focus:border-white/30 focus:ring-4 focus:ring-white/10";
+
+const textareaClassName =
+  "min-h-28 rounded-2xl border-white/10 bg-white/10 text-white placeholder:text-slate-400 shadow-sm backdrop-blur-xl focus:border-white/30 focus:ring-4 focus:ring-white/10";
+
+const selectClassName =
+  "h-10 rounded-2xl border border-white/10 bg-slate-950/70 px-3 text-sm text-white shadow-sm outline-none transition focus:border-white/30 focus:ring-4 focus:ring-white/10";
+
 export default function NuevoObjetivoProyectoPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -80,7 +89,7 @@ export default function NuevoObjetivoProyectoPage() {
           );
         }
 
-        await crearObjetivo({
+        const objetivo = await crearObjetivo({
           titulo,
           descripcion,
           proyectoId,
@@ -90,6 +99,15 @@ export default function NuevoObjetivoProyectoPage() {
         });
 
         setMessage("Objetivo creado correctamente.");
+
+        if (objetivo?.id) {
+          router.push(
+            `/tareas?proyectoId=${proyectoId}&objetivoId=${objetivo.id}#crear-tarea`
+          );
+          router.refresh();
+          return;
+        }
+
         router.push(`/proyectos/${proyectoId}`);
         router.refresh();
       } catch (err) {
@@ -106,10 +124,13 @@ export default function NuevoObjetivoProyectoPage() {
       title="Nuevo objetivo"
       description="Crea un objetivo dentro del proyecto seleccionado."
     >
-      <div className="grid gap-6">
+      <div className="grid gap-6 text-white">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Link href={`/proyectos/${proyectoId}`}>
-            <Button variant="outline" className="rounded-2xl bg-white">
+            <Button
+              variant="outline"
+              className="rounded-2xl border-white/15 bg-white/10 text-white shadow-sm backdrop-blur-xl hover:bg-white/15"
+            >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver al proyecto
             </Button>
@@ -117,29 +138,30 @@ export default function NuevoObjetivoProyectoPage() {
         </div>
 
         {error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <div className="rounded-2xl border border-red-300/30 bg-red-500/15 px-4 py-3 text-sm font-medium text-red-100 backdrop-blur-xl">
             {error}
           </div>
         ) : null}
 
         {message ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+          <div className="rounded-2xl border border-emerald-300/30 bg-emerald-500/15 px-4 py-3 text-sm font-medium text-emerald-100 backdrop-blur-xl">
             {message}
           </div>
         ) : null}
 
         <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
-          <Card className="rounded-[2rem] border-slate-200 bg-white p-6 shadow-sm">
+          <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
             <div className="mb-6 flex items-start gap-4">
-              <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
+              <div className="rounded-2xl bg-emerald-300/20 p-3 text-emerald-100 ring-1 ring-emerald-200/20">
                 <Target className="h-5 w-5" />
               </div>
 
               <div>
-                <h2 className="text-xl font-bold text-slate-950">
+                <h2 className="text-xl font-black text-white">
                   Crear objetivo
                 </h2>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
+
+                <p className="mt-1 text-sm leading-6 text-slate-300">
                   Este objetivo quedará asociado directamente al proyecto actual.
                 </p>
               </div>
@@ -149,16 +171,17 @@ export default function NuevoObjetivoProyectoPage() {
               <div className="grid gap-2">
                 <label
                   htmlFor="titulo"
-                  className="text-sm font-semibold text-slate-700"
+                  className="text-sm font-semibold text-slate-100"
                 >
                   Título
                 </label>
+
                 <Input
                   id="titulo"
                   value={titulo}
                   onChange={(event) => setTitulo(event.target.value)}
                   placeholder="Ej: Lanzar campaña mensual de contenido"
-                  className="rounded-2xl"
+                  className={inputClassName}
                   required
                 />
               </div>
@@ -166,16 +189,17 @@ export default function NuevoObjetivoProyectoPage() {
               <div className="grid gap-2">
                 <label
                   htmlFor="descripcion"
-                  className="text-sm font-semibold text-slate-700"
+                  className="text-sm font-semibold text-slate-100"
                 >
                   Descripción
                 </label>
+
                 <Textarea
                   id="descripcion"
                   value={descripcion}
                   onChange={(event) => setDescripcion(event.target.value)}
                   placeholder="Define qué significa completar este objetivo..."
-                  className="min-h-28 rounded-2xl"
+                  className={textareaClassName}
                 />
               </div>
 
@@ -183,49 +207,52 @@ export default function NuevoObjetivoProyectoPage() {
                 <div className="grid gap-2">
                   <label
                     htmlFor="fechaInicio"
-                    className="text-sm font-semibold text-slate-700"
+                    className="text-sm font-semibold text-slate-100"
                   >
                     Inicio
                   </label>
+
                   <Input
                     id="fechaInicio"
                     type="date"
                     value={fechaInicio}
                     onChange={(event) => setFechaInicio(event.target.value)}
-                    className="rounded-2xl"
+                    className={inputClassName}
                   />
                 </div>
 
                 <div className="grid gap-2">
                   <label
                     htmlFor="fechaLimite"
-                    className="text-sm font-semibold text-slate-700"
+                    className="text-sm font-semibold text-slate-100"
                   >
                     Fin
                   </label>
+
                   <Input
                     id="fechaLimite"
                     type="date"
                     value={fechaLimite}
                     onChange={(event) => setFechaLimite(event.target.value)}
-                    className="rounded-2xl"
+                    className={inputClassName}
                   />
                 </div>
 
                 <div className="grid gap-2">
                   <label
                     htmlFor="estado"
-                    className="text-sm font-semibold text-slate-700"
+                    className="text-sm font-semibold text-slate-100"
                   >
                     Estado
                   </label>
+
                   <select
                     id="estado"
                     value={estado}
                     onChange={(event) =>
                       setEstado(event.target.value as EstadoObjetivo)
                     }
-                    className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-xs outline-none transition focus:border-slate-400"
+                    className={selectClassName}
                   >
                     <option value="activo">Activo</option>
                     <option value="pausado">Pausado</option>
@@ -238,7 +265,7 @@ export default function NuevoObjetivoProyectoPage() {
               <Button
                 type="submit"
                 size="lg"
-                className="mt-2 rounded-2xl"
+                className="mt-2 rounded-2xl bg-white text-slate-950 hover:bg-slate-100"
                 disabled={isPending}
               >
                 <Plus className="mr-2 h-5 w-5" />
@@ -248,79 +275,83 @@ export default function NuevoObjetivoProyectoPage() {
           </Card>
 
           <aside className="grid h-fit gap-6">
-            <Card className="rounded-[2rem] border-slate-200 bg-slate-950 p-6 text-white shadow-sm">
+            <Card className="rounded-[2rem] border-white/10 bg-slate-950/72 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
               <div className="mb-5 flex items-center gap-3">
-                <div className="rounded-2xl bg-white/10 p-3">
+                <div className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/10">
                   <FolderKanban className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-bold">Proyecto</h2>
-                  <p className="text-sm text-slate-400">
+                  <h2 className="text-lg font-black text-white">Proyecto</h2>
+
+                  <p className="text-sm text-slate-300">
                     El objetivo se creará aquí.
                   </p>
                 </div>
               </div>
 
               {loadingProyecto ? (
-                <p className="text-sm text-slate-400">Cargando proyecto...</p>
+                <p className="text-sm text-slate-300">Cargando proyecto...</p>
               ) : proyecto ? (
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-4">
-                  <p className="font-semibold">{proyecto.nombre}</p>
+                <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl">
+                  <p className="font-black text-white">{proyecto.nombre}</p>
+
                   <p className="mt-2 text-sm leading-6 text-slate-300">
                     {proyecto.descripcion || "Sin descripción"}
                   </p>
                 </div>
               ) : (
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-slate-300">
                   Proyecto no encontrado.
                 </p>
               )}
             </Card>
 
-            <Card className="rounded-[2rem] border-slate-200 bg-white p-6 shadow-sm">
+            <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
               <div className="mb-5 flex items-center gap-3">
-                <div className="rounded-2xl bg-sky-50 p-3 text-sky-600">
+                <div className="rounded-2xl bg-sky-300/20 p-3 text-sky-100 ring-1 ring-sky-200/20">
                   <CalendarDays className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-bold text-slate-950">
+                  <h2 className="text-lg font-black text-white">
                     Regla de fechas
                   </h2>
-                  <p className="text-sm text-slate-500">
+
+                  <p className="text-sm text-slate-300">
                     Evitar objetivos cruzados.
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm leading-6 text-slate-600">
+              <div className="rounded-3xl border border-white/10 bg-white/10 p-4 backdrop-blur-xl">
+                <p className="text-sm leading-6 text-slate-300">
                   Si ya existe un objetivo activo o pausado en este proyecto con
                   un rango cruzado, el sistema bloqueará la creación.
                 </p>
               </div>
             </Card>
 
-            <Card className="rounded-[2rem] border-slate-200 bg-white p-6 shadow-sm">
+            <Card className="rounded-[2rem] border-white/10 bg-slate-950/44 p-6 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
               <div className="mb-5 flex items-center gap-3">
-                <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-600">
+                <div className="rounded-2xl bg-emerald-300/20 p-3 text-emerald-100 ring-1 ring-emerald-200/20">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-bold text-slate-950">
+                  <h2 className="text-lg font-black text-white">
                     Después de crear
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    Volverás al proyecto.
+
+                  <p className="text-sm text-slate-300">
+                    Irás directo a crear la tarea.
                   </p>
                 </div>
               </div>
 
-              <p className="text-sm leading-6 text-slate-500">
-                Luego podrás entrar al objetivo y crear tareas específicas para
-                hacerlo avanzar.
+              <p className="text-sm leading-6 text-slate-300">
+                Luego de crear el objetivo, la app te llevará al formulario de
+                tareas con el proyecto y objetivo ya seleccionados.
               </p>
             </Card>
           </aside>
