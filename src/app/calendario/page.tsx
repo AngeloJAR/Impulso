@@ -17,6 +17,7 @@ import {
   type CalendarioMetricas,
   type CalendarioTarea,
 } from "@/features/calendario/queries";
+import { theme } from "@/config/theme";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,23 +39,28 @@ const emptyMetricas: CalendarioMetricas = {
 const diasSemana = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 const prioridadStyles: Record<CalendarioTarea["prioridad"], string> = {
-  baja: "bg-slate-300/15 text-slate-200 ring-white/10",
-  media: "bg-amber-300/20 text-amber-100 ring-amber-200/20",
-  alta: "bg-rose-300/20 text-rose-100 ring-rose-200/20",
+  baja: theme.states.prioridad.baja,
+  media: theme.states.prioridad.media,
+  alta: theme.states.prioridad.alta,
 };
 
 const estadoStyles: Record<CalendarioTarea["estado"], string> = {
-  pendiente: "bg-slate-300/15 text-slate-200 ring-white/10",
-  hoy: "bg-sky-300/20 text-sky-100 ring-sky-200/20",
-  en_proceso: "bg-violet-300/20 text-violet-100 ring-violet-200/20",
-  bloqueada: "bg-rose-300/20 text-rose-100 ring-rose-200/20",
-  terminada: "bg-emerald-300/20 text-emerald-100 ring-emerald-200/20",
+  pendiente: theme.states.tarea.pendiente,
+  hoy: theme.states.tarea.hoy,
+  en_proceso: theme.states.tarea.en_proceso,
+  bloqueada: theme.states.tarea.bloqueada,
+  terminada: theme.states.tarea.terminada,
 };
+
+function capitalizar(value: string) {
+  const clean = value.replaceAll("_", " ");
+  return clean.charAt(0).toUpperCase() + clean.slice(1);
+}
 
 function formatFecha(value?: string | null) {
   if (!value) return "Sin fecha";
 
-  const fecha = new Date(value);
+  const fecha = new Date(`${value}T00:00:00`);
 
   if (Number.isNaN(fecha.getTime())) {
     return "Fecha no válida";
@@ -92,6 +98,7 @@ function getSemanaActual() {
     return {
       label,
       date: getDateInEcuador(date),
+      isToday: index === 0,
     };
   });
 }
@@ -115,43 +122,47 @@ function tareaOcurreEnDia(tarea: CalendarioTarea, dia: string) {
 
 function TareaMiniCard({ tarea }: { tarea: CalendarioTarea }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/10 p-3 text-white shadow-sm backdrop-blur-xl transition hover:border-white/25 hover:bg-white/15">
-      <div className="mb-2 flex flex-wrap items-center gap-2">
+    <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/40">
+      <div className="mb-2 flex min-w-0 flex-wrap items-center gap-1.5">
         <span
-          className={`rounded-full px-2.5 py-1 text-[11px] font-bold capitalize ring-1 ${
-            prioridadStyles[tarea.prioridad]
-          }`}
+          className={`${theme.badge.base} ${prioridadStyles[tarea.prioridad]} max-w-full`}
         >
-          {tarea.prioridad}
+          {capitalizar(tarea.prioridad)}
         </span>
 
         <span
-          className={`rounded-full px-2.5 py-1 text-[11px] font-bold capitalize ring-1 ${
-            estadoStyles[tarea.estado]
-          }`}
+          className={`${theme.badge.base} ${estadoStyles[tarea.estado]} max-w-full`}
         >
-          {tarea.estado}
+          {capitalizar(tarea.estado)}
         </span>
       </div>
 
-      <p className="line-clamp-2 text-sm font-black leading-5 text-white">{tarea.titulo}</p>
+      <p className="line-clamp-2 break-words text-sm font-black leading-5 text-slate-950">
+        {tarea.titulo}
+      </p>
 
       {tarea.proyecto ? (
-        <div className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full border border-sky-200/20 bg-sky-300/15 px-2.5 py-1 text-[11px] font-bold text-sky-100 backdrop-blur-xl">
+        <div
+          className={`${theme.badge.base} ${theme.badge.sky} mt-3 inline-flex max-w-full items-center gap-1.5 normal-case tracking-normal`}
+        >
           <FolderKanban className="h-3 w-3 shrink-0" />
-          <span className="truncate">{tarea.proyecto.nombre}</span>
+          <span className="min-w-0 truncate">{tarea.proyecto.nombre}</span>
         </div>
       ) : null}
 
-      <div className="mt-3 grid gap-1 text-[11px] font-semibold text-slate-300">
-        <div className="flex items-center gap-1.5">
+      <div className="mt-3 grid min-w-0 gap-1 text-[11px] font-bold text-slate-500">
+        <div className="flex min-w-0 items-center gap-1.5">
           <CalendarDays className="h-3 w-3 shrink-0" />
-          <span className="truncate">Inicio: {formatFecha(getFechaInicioTarea(tarea))}</span>
+          <span className="min-w-0 truncate">
+            Inicio: {formatFecha(getFechaInicioTarea(tarea))}
+          </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex min-w-0 items-center gap-1.5">
           <CalendarDays className="h-3 w-3 shrink-0" />
-          <span className="truncate">Fin: {formatFecha(getFechaFinTarea(tarea))}</span>
+          <span className="min-w-0 truncate">
+            Fin: {formatFecha(getFechaFinTarea(tarea))}
+          </span>
         </div>
       </div>
     </div>
@@ -171,7 +182,8 @@ export default function CalendarioPage() {
       const data = await getCalendarioMetricas();
       setMetricas(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "No se pudo cargar el calendario.";
+      const message =
+        err instanceof Error ? err.message : "No se pudo cargar el calendario.";
 
       setError(message);
     } finally {
@@ -188,15 +200,28 @@ export default function CalendarioPage() {
       window.clearTimeout(timeoutId);
     };
   }, [loadCalendario]);
-
   const semanaActual = useMemo(() => getSemanaActual(), []);
 
   const tareasPorDia = useMemo(() => {
     return semanaActual.map((dia) => ({
       ...dia,
-      tareas: metricas.tareasSemana.filter((tarea) => tareaOcurreEnDia(tarea, dia.date)),
+      tareas: metricas.tareasSemana.filter((tarea) =>
+        tareaOcurreEnDia(tarea, dia.date)
+      ),
     }));
   }, [metricas.tareasSemana, semanaActual]);
+
+  const progresoSemana = useMemo(() => {
+    const totalSemana = metricas.tareasSemana.length;
+
+    if (totalSemana === 0) return 0;
+
+    const terminadasSemana = metricas.tareasSemana.filter(
+      (tarea) => tarea.estado === "terminada"
+    ).length;
+
+    return Math.round((terminadasSemana / totalSemana) * 100);
+  }, [metricas.tareasSemana]);
 
   const resumenCalendario = [
     {
@@ -204,24 +229,28 @@ export default function CalendarioPage() {
       value: String(metricas.tareasHoy),
       description: "Tareas para este día",
       icon: ListTodo,
+      iconClass: "bg-violet-50 text-violet-700 ring-violet-100",
     },
     {
       title: "Próximas",
       value: String(metricas.tareasProximas),
       description: "En los próximos 7 días",
       icon: CalendarDays,
+      iconClass: "bg-blue-50 text-blue-700 ring-blue-100",
     },
     {
       title: "Recordatorios",
       value: String(metricas.recordatoriosProximos),
       description: "Alertas configuradas",
       icon: Bell,
+      iconClass: "bg-amber-50 text-amber-700 ring-amber-100",
     },
     {
       title: "Terminadas",
       value: String(metricas.tareasTerminadas),
       description: "Acciones completadas",
       icon: CheckCircle2,
+      iconClass: "bg-emerald-50 text-emerald-700 ring-emerald-100",
     },
   ];
 
@@ -230,149 +259,216 @@ export default function CalendarioPage() {
       title="Calendario"
       description="Vista temporal para tareas, recordatorios y fechas importantes."
     >
-      <div className="grid gap-4 text-white">
-        {error ? (
-          <div className="rounded-2xl border border-red-300/30 bg-red-500/15 px-4 py-3 text-sm font-semibold text-red-100 backdrop-blur-xl">
-            {error}
-          </div>
-        ) : null}
+      <div className="space-y-5">
+        {error ? <div className={theme.alerts.error}>{error}</div> : null}
 
-        <section className="rounded-[1.75rem] border border-white/10 bg-slate-950/44 shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-          <div className="flex flex-col gap-4 border-b border-white/10 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-slate-950 shadow-sm">
-                <CalendarDays className="h-5 w-5" />
-              </span>
+        <section className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+          <Card className={theme.card.hero}>
+            <div className={theme.hero.wrapper}>
+              <div className={theme.hero.glow} />
 
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="truncate text-xl font-black tracking-tight text-white md:text-2xl">
-                    Panel de calendario
-                  </h2>
-
-                  <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-slate-200 backdrop-blur-xl">
-                    {loading ? "Cargando..." : "Semana actual"}
-                  </span>
+              <div className={theme.hero.content}>
+                <div className={theme.hero.badge}>
+                  <CalendarDays className="h-4 w-4" />
+                  Semana activa
                 </div>
 
-                <p className="mt-1 text-sm leading-5 text-slate-300">
-                  Revisa tareas de hoy, próximos días y recordatorios.
+                <h2 className={theme.hero.title}>
+                  Mira qué toca hacer, cuándo y con qué prioridad.
+                </h2>
+
+                <p className={theme.hero.description}>
+                  El calendario reúne tareas con fecha, próximas acciones y
+                  recordatorios para que no tengas que buscarlos en cada proyecto.
                 </p>
+
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <Button
+                    type="button"
+                    className={theme.button.primaryLarge}
+                    onClick={() => void loadCalendario()}
+                    disabled={loading}
+                  >
+                    <RefreshCcw
+                      className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""
+                        }`}
+                    />
+                    {loading ? "Actualizando" : "Actualizar calendario"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className={theme.card.base}>
+            <p className={theme.text.kicker}>Avance semanal</p>
+
+            <div className="mt-5 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-5xl font-black text-slate-950">
+                  {loading ? "..." : `${progresoSemana}%`}
+                </p>
+
+                <p className={`${theme.text.body} mt-2`}>
+                  Según tareas terminadas en la semana.
+                </p>
+              </div>
+
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+                <CheckCircle2 className="h-6 w-6" />
               </div>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10 rounded-2xl border-white/15 bg-white/10 px-4 font-bold text-white shadow-sm backdrop-blur-xl hover:bg-white/15"
-              onClick={() => void loadCalendario()}
-              disabled={loading}
-            >
-              <RefreshCcw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-              {loading ? "Actualizando" : "Actualizar"}
-            </Button>
-          </div>
+            <div className={`${theme.progress.track} mt-5`}>
+              <div
+                className={theme.progress.bar}
+                style={{ width: `${progresoSemana}%` }}
+              />
+            </div>
 
-          <div className="grid gap-3 p-5 sm:grid-cols-2 md:p-6 xl:grid-cols-4">
-            {resumenCalendario.map((item) => {
-              const Icon = item.icon;
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <div className="rounded-[1.3rem] border border-slate-200 bg-slate-50 p-4">
+                <p className="text-2xl font-black text-slate-950">
+                  {metricas.tareasSemana.length}
+                </p>
+                <p className="mt-1 text-xs font-bold text-slate-500">
+                  En semana
+                </p>
+              </div>
 
-              return (
-                <Card
-                  key={item.title}
-                  className="rounded-3xl border-white/10 bg-white/10 p-4 text-white shadow-none backdrop-blur-xl"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-300">{item.title}</p>
-
-                      <p className="mt-2 text-3xl font-black text-white">
-                        {loading ? "..." : item.value}
-                      </p>
-
-                      <p className="mt-1 text-sm leading-5 text-slate-300">{item.description}</p>
-                    </div>
-
-                    <div className="rounded-2xl bg-white/15 p-3 text-slate-100 shadow-sm ring-1 ring-white/10">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
+              <div className="rounded-[1.3rem] border border-slate-200 bg-slate-50 p-4">
+                <p className="text-2xl font-black text-slate-950">
+                  {metricas.tareasVencidas}
+                </p>
+                <p className="mt-1 text-xs font-bold text-slate-500">
+                  Vencidas
+                </p>
+              </div>
+            </div>
+          </Card>
         </section>
 
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <Card className="rounded-[1.75rem] border-white/10 bg-slate-950/44 p-5 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl md:p-6">
-            <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className="text-xl font-black text-white">Semana actual</h2>
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {resumenCalendario.map((item) => {
+            const Icon = item.icon;
 
-                <p className="mt-1 text-sm text-slate-300">
-                  Tareas distribuidas durante los próximos 7 días.
+            return (
+              <Card key={item.title} className={theme.card.base}>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className={theme.text.kicker}>{item.title}</p>
+
+                    <p className="mt-3 text-4xl font-black text-slate-950">
+                      {loading ? "..." : item.value}
+                    </p>
+
+                    <p className="mt-1 text-xs font-medium leading-5 text-slate-500">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`rounded-2xl p-3 ring-1 ${item.iconClass}`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </section>
+
+        <section className="grid gap-5 xl:grid-cols-[1fr_380px]">
+          <Card className={theme.card.base}>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className={theme.text.kicker}>Semana actual</p>
+
+                <h2 className="mt-2 text-2xl font-black text-slate-950">
+                  Próximos 7 días
+                </h2>
+
+                <p className={`${theme.text.body} mt-2 max-w-2xl`}>
+                  Las tareas se muestran en los días donde su rango de fechas
+                  está activo.
                 </p>
               </div>
 
-              <span className="w-fit rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-slate-200 backdrop-blur-xl">
-                {metricas.tareasSemana.length} tareas en semana
-              </span>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                  Total semana
+                </p>
+
+                <p className="mt-1 text-2xl font-black text-slate-950">
+                  {metricas.tareasSemana.length}
+                </p>
+              </div>
             </div>
 
-            <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+            <div className="mt-5 grid min-w-0 gap-4 xl:grid-cols-2 2xl:grid-cols-3">
               {tareasPorDia.map((dia) => {
                 const tieneTareas = dia.tareas.length > 0;
 
                 return (
                   <div
                     key={dia.date}
-                    className={`rounded-3xl border p-4 transition ${
-                      tieneTareas
-                        ? "border-white/20 bg-white/10 shadow-sm backdrop-blur-xl"
-                        : "border-white/10 bg-white/5 backdrop-blur-xl"
-                    }`}
+                    className={`min-w-0 overflow-hidden rounded-[1.7rem] border p-4 transition ${tieneTareas
+                      ? "border-blue-200 bg-blue-50/40"
+                      : "border-slate-200 bg-slate-50"
+                      }`}
                   >
-                    <div className="mb-4 flex items-center justify-between gap-3">
+                    <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-base font-black text-white">{dia.label}</h3>
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                          <h3 className="text-base font-black text-slate-950">
+                            {dia.label}
+                          </h3>
+
+                          {dia.isToday ? (
+                            <span className={`${theme.badge.base} ${theme.badge.blue}`}>
+                              Hoy
+                            </span>
+                          ) : null}
 
                           {tieneTareas ? (
-                            <span className="rounded-full border border-emerald-200/20 bg-emerald-300/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-100">
+                            <span
+                              className={`${theme.badge.base} ${theme.badge.emerald}`}
+                            >
                               Activo
                             </span>
                           ) : null}
                         </div>
 
-                        <p className="mt-0.5 text-xs font-semibold text-slate-300">
+                        <p className="mt-1 text-xs font-bold text-slate-500">
                           {formatFecha(dia.date)}
                         </p>
                       </div>
 
                       <span
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-xs font-black shadow-sm ring-1 ${
-                          tieneTareas
-                            ? "bg-white text-slate-950 ring-white"
-                            : "bg-white/10 text-slate-300 ring-white/10"
-                        }`}
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-xs font-black ring-1 ${tieneTareas
+                          ? "bg-blue-600 text-white ring-blue-600"
+                          : "bg-white text-slate-500 ring-slate-200"
+                          }`}
                       >
                         {dia.tareas.length}
                       </span>
                     </div>
 
                     {dia.tareas.length === 0 ? (
-                      <div className="flex min-h-[96px] items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/10 backdrop-blur-xl">
-                        <p className="text-xs font-bold text-slate-300">Sin tareas programadas</p>
+                      <div className="flex min-h-[110px] items-center justify-center rounded-[1.4rem] border border-dashed border-slate-300 bg-white">
+                        <p className="text-xs font-bold text-slate-500">
+                          Sin tareas programadas
+                        </p>
                       </div>
                     ) : (
-                      <div className="grid gap-3">
+                      <div className="grid min-w-0 gap-3">
                         {dia.tareas.slice(0, 2).map((tarea) => (
                           <TareaMiniCard key={tarea.id} tarea={tarea} />
                         ))}
 
                         {dia.tareas.length > 2 ? (
-                          <div className="rounded-2xl border border-dashed border-white/20 bg-white/10 px-3 py-2 text-center backdrop-blur-xl">
-                            <p className="text-xs font-bold text-slate-300">
+                          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-3 py-2 text-center">
+                            <p className="text-xs font-bold text-slate-500">
                               + {dia.tareas.length - 2} tarea
                               {dia.tareas.length - 2 === 1 ? "" : "s"} más
                             </p>
@@ -386,91 +482,101 @@ export default function CalendarioPage() {
             </div>
           </Card>
 
-          <aside className="grid gap-4">
-            <Card className="rounded-[1.75rem] border-white/10 bg-slate-950/44 p-5 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="rounded-2xl bg-amber-300/20 p-3 text-amber-100 ring-1 ring-amber-200/20">
+          <aside className="grid h-fit gap-5">
+            <Card className={theme.card.base}>
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 ring-1 ring-amber-100">
                   <Clock3 className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">Tareas de hoy</h2>
+                  <p className={theme.text.kicker}>Hoy</p>
 
-                  <p className="text-sm text-slate-300">Acciones que requieren atención.</p>
+                  <h2 className="mt-2 text-xl font-black text-slate-950">
+                    Tareas de hoy
+                  </h2>
                 </div>
               </div>
 
-              {metricas.tareasHoyLista.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-5 text-center backdrop-blur-xl">
-                  <ListTodo className="mx-auto mb-3 h-6 w-6 text-slate-300" />
+              <div className="mt-5 grid gap-3">
+                {metricas.tareasHoyLista.length === 0 ? (
+                  <div className={theme.card.empty}>
+                    <ListTodo className="mx-auto mb-3 h-6 w-6 text-slate-400" />
 
-                  <p className="text-sm font-bold text-white">Sin tareas para hoy</p>
-                </div>
-              ) : (
-                <div className="grid gap-3">
-                  {metricas.tareasHoyLista.map((tarea) => (
+                    <p className="text-sm font-bold text-slate-950">
+                      Sin tareas para hoy
+                    </p>
+                  </div>
+                ) : (
+                  metricas.tareasHoyLista.map((tarea) => (
                     <TareaMiniCard key={tarea.id} tarea={tarea} />
-                  ))}
-                </div>
-              )}
+                  ))
+                )}
+              </div>
             </Card>
 
-            <Card className="rounded-[1.75rem] border-white/10 bg-slate-950/44 p-5 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="rounded-2xl bg-sky-300/20 p-3 text-sky-100 ring-1 ring-sky-200/20">
+            <Card className={theme.card.base}>
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700 ring-1 ring-sky-100">
                   <Bell className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">Recordatorios</h2>
+                  <p className={theme.text.kicker}>Alertas</p>
 
-                  <p className="text-sm text-slate-300">Tareas con aviso configurado.</p>
+                  <h2 className="mt-2 text-xl font-black text-slate-950">
+                    Recordatorios
+                  </h2>
                 </div>
               </div>
 
-              {metricas.recordatoriosLista.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-5 text-center backdrop-blur-xl">
-                  <Bell className="mx-auto mb-3 h-6 w-6 text-slate-300" />
+              <div className="mt-5 grid gap-3">
+                {metricas.recordatoriosLista.length === 0 ? (
+                  <div className={theme.card.empty}>
+                    <Bell className="mx-auto mb-3 h-6 w-6 text-slate-400" />
 
-                  <p className="text-sm font-bold text-white">Sin recordatorios próximos</p>
-                </div>
-              ) : (
-                <div className="grid gap-3">
-                  {metricas.recordatoriosLista.slice(0, 5).map((tarea) => (
+                    <p className="text-sm font-bold text-slate-950">
+                      Sin recordatorios próximos
+                    </p>
+                  </div>
+                ) : (
+                  metricas.recordatoriosLista.slice(0, 5).map((tarea) => (
                     <div
                       key={tarea.id}
-                      className="rounded-2xl border border-white/10 bg-white/10 p-3 text-white backdrop-blur-xl"
+                      className="rounded-[1.4rem] border border-slate-200 bg-white p-4 shadow-sm"
                     >
-                      <p className="line-clamp-2 text-sm font-black text-white">{tarea.titulo}</p>
+                      <p className="text-sm font-black text-slate-950">
+                        {tarea.titulo}
+                      </p>
 
-                      <p className="mt-1 text-xs font-semibold text-slate-300">
+                      <p className="mt-2 text-xs font-bold text-slate-500">
                         Recordatorio: {formatFecha(tarea.recordatorio)}
                       </p>
                     </div>
-                  ))}
-                </div>
-              )}
+                  ))
+                )}
+              </div>
             </Card>
 
-            <Card className="rounded-[1.75rem] border-white/10 bg-slate-950/44 p-5 text-white shadow-[0_24px_90px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="rounded-2xl bg-emerald-300/20 p-3 text-emerald-100 ring-1 ring-emerald-200/20">
+            <Card className={theme.card.base}>
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
                   <Target className="h-5 w-5" />
                 </div>
 
                 <div>
-                  <h2 className="text-lg font-black text-white">Próximo paso</h2>
+                  <p className={theme.text.kicker}>Uso recomendado</p>
 
-                  <p className="text-sm text-slate-300">Objetivos con fecha límite.</p>
+                  <h2 className="mt-2 text-xl font-black text-slate-950">
+                    Planifica por tareas
+                  </h2>
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-dashed border-white/20 bg-white/10 p-5 backdrop-blur-xl">
-                <p className="text-sm leading-6 text-slate-300">
-                  Luego conectaremos objetivos reales para mostrar fechas límite y progreso dentro
-                  del calendario.
-                </p>
-              </div>
+              <p className={`${theme.card.inner} mt-5 text-sm font-medium leading-6`}>
+                Para que algo aparezca aquí, crea tareas con fecha de inicio,
+                fecha límite o recordatorio.
+              </p>
             </Card>
           </aside>
         </section>

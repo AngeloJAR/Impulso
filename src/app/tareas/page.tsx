@@ -1,16 +1,28 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import {
+  Suspense,
+  type ElementType,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
+import { useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   CalendarDays,
   CheckCircle2,
   CircleDashed,
   Clock3,
+  Filter,
   FolderKanban,
   ListTodo,
   PlayCircle,
   Plus,
+  RefreshCcw,
+  Search,
   Target,
 } from "lucide-react";
 
@@ -22,70 +34,93 @@ import {
   type TareaResumen,
 } from "@/features/tareas/queries";
 import { getProyectos, type ProyectoResumen } from "@/features/proyectos/queries";
-import { getObjetivosParaSelector, type ObjetivoSelector } from "@/features/objetivos/queries";
+import {
+  getObjetivosParaSelector,
+  type ObjetivoSelector,
+} from "@/features/objetivos/queries";
 
+import { theme } from "@/config/theme";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
+type FiltroEstado = "todos" | EstadoTarea;
+type FiltroPrioridad = "todas" | PrioridadTarea;
+
 const estadosTarea: {
   key: EstadoTarea;
   title: string;
   description: string;
-  icon: React.ElementType;
+  icon: ElementType;
 }[] = [
-  {
-    key: "pendiente",
-    title: "Pendiente",
-    description: "Acciones que todavía no empiezan.",
-    icon: CircleDashed,
-  },
-  {
-    key: "hoy",
-    title: "Hoy",
-    description: "Tareas que necesitan atención hoy.",
-    icon: CalendarDays,
-  },
-  {
-    key: "en_proceso",
-    title: "En proceso",
-    description: "Acciones que ya están en movimiento.",
-    icon: PlayCircle,
-  },
-  {
-    key: "bloqueada",
-    title: "Bloqueada",
-    description: "Tareas detenidas por dependencia o problema.",
-    icon: AlertCircle,
-  },
-  {
-    key: "terminada",
-    title: "Terminada",
-    description: "Acciones completadas.",
-    icon: CheckCircle2,
-  },
+    {
+      key: "pendiente",
+      title: "Pendiente",
+      description: "Acciones que todavía no empiezan.",
+      icon: CircleDashed,
+    },
+    {
+      key: "hoy",
+      title: "Hoy",
+      description: "Necesitan atención hoy.",
+      icon: CalendarDays,
+    },
+    {
+      key: "en_proceso",
+      title: "En proceso",
+      description: "Acciones en movimiento.",
+      icon: PlayCircle,
+    },
+    {
+      key: "bloqueada",
+      title: "Bloqueada",
+      description: "Detenidas por un problema.",
+      icon: AlertCircle,
+    },
+    {
+      key: "terminada",
+      title: "Terminada",
+      description: "Acciones completadas.",
+      icon: CheckCircle2,
+    },
+  ];
+
+const filtrosEstado: { value: FiltroEstado; label: string }[] = [
+  { value: "todos", label: "Todas" },
+  { value: "pendiente", label: "Pendientes" },
+  { value: "hoy", label: "Hoy" },
+  { value: "en_proceso", label: "En proceso" },
+  { value: "bloqueada", label: "Bloqueadas" },
+  { value: "terminada", label: "Terminadas" },
+];
+
+const filtrosPrioridad: { value: FiltroPrioridad; label: string }[] = [
+  { value: "todas", label: "Todas" },
+  { value: "baja", label: "Baja" },
+  { value: "media", label: "Media" },
+  { value: "alta", label: "Alta" },
 ];
 
 const prioridadStyles: Record<PrioridadTarea, string> = {
-  baja: "bg-slate-100 text-slate-600",
-  media: "bg-amber-100 text-amber-700",
-  alta: "bg-rose-100 text-rose-700",
+  baja: theme.states.prioridad.baja,
+  media: theme.states.prioridad.media,
+  alta: theme.states.prioridad.alta,
 };
 
 const estadoStyles: Record<EstadoTarea, string> = {
-  pendiente: "bg-slate-100 text-slate-600 ring-slate-200",
-  hoy: "bg-sky-50 text-sky-700 ring-sky-100",
-  en_proceso: "bg-violet-50 text-violet-700 ring-violet-100",
-  bloqueada: "bg-rose-50 text-rose-700 ring-rose-100",
-  terminada: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+  pendiente: theme.states.tarea.pendiente,
+  hoy: theme.states.tarea.hoy,
+  en_proceso: theme.states.tarea.en_proceso,
+  bloqueada: theme.states.tarea.bloqueada,
+  terminada: theme.states.tarea.terminada,
 };
 
 function formatFecha(value?: string | null) {
   if (!value) return "Sin fecha";
 
-  const fecha = new Date(value);
+  const fecha = new Date(`${value}T00:00:00`);
 
   if (Number.isNaN(fecha.getTime())) {
     return "Fecha no válida";
@@ -99,20 +134,35 @@ function formatFecha(value?: string | null) {
   }).format(fecha);
 }
 
+function capitalizar(value: string) {
+  const clean = value.replaceAll("_", " ");
+  return clean.charAt(0).toUpperCase() + clean.slice(1);
+}
+
 function getEstadoLabel(estado: EstadoTarea) {
   return estadosTarea.find((item) => item.key === estado)?.title ?? estado;
 }
 
-export default function TareasPage() {
+function TareasContent() {
+  const searchParams = useSearchParams();
+
+  const proyectoIdFromUrl = searchParams.get("proyectoId") ?? "";
+  const objetivoIdFromUrl = searchParams.get("objetivoId") ?? "";
+
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [proyectoId, setProyectoId] = useState("");
-  const [objetivoId, setObjetivoId] = useState("");
+  const [proyectoId, setProyectoId] = useState(proyectoIdFromUrl);
+  const [objetivoId, setObjetivoId] = useState(objetivoIdFromUrl);
   const [prioridad, setPrioridad] = useState<PrioridadTarea>("media");
   const [estado, setEstado] = useState<EstadoTarea>("pendiente");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaLimite, setFechaLimite] = useState("");
   const [recordatorio, setRecordatorio] = useState("");
+
+  const [search, setSearch] = useState("");
+  const [estadoFiltro, setEstadoFiltro] = useState<FiltroEstado>("todos");
+  const [prioridadFiltro, setPrioridadFiltro] =
+    useState<FiltroPrioridad>("todas");
 
   const [tareas, setTareas] = useState<TareaResumen[]>([]);
   const [proyectos, setProyectos] = useState<ProyectoResumen[]>([]);
@@ -128,6 +178,10 @@ export default function TareasPage() {
 
   const [isPending, startTransition] = useTransition();
 
+  const fechasInvalidas = Boolean(
+    fechaInicio && fechaLimite && fechaInicio > fechaLimite
+  );
+
   const loadTareas = useCallback(async () => {
     setLoadingTareas(true);
     setError("");
@@ -136,7 +190,8 @@ export default function TareasPage() {
       const data = await getTareas();
       setTareas(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "No se pudieron cargar las tareas.";
+      const message =
+        err instanceof Error ? err.message : "No se pudieron cargar las tareas.";
 
       setError(message);
     } finally {
@@ -151,7 +206,8 @@ export default function TareasPage() {
       const data = await getProyectos();
       setProyectos(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "No se pudieron cargar los proyectos.";
+      const message =
+        err instanceof Error ? err.message : "No se pudieron cargar los proyectos.";
 
       setError(message);
     } finally {
@@ -166,7 +222,8 @@ export default function TareasPage() {
       const data = await getObjetivosParaSelector();
       setObjetivos(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "No se pudieron cargar los objetivos.";
+      const message =
+        err instanceof Error ? err.message : "No se pudieron cargar los objetivos.";
 
       setError(message);
     } finally {
@@ -186,10 +243,70 @@ export default function TareasPage() {
     };
   }, [loadTareas, loadProyectos, loadObjetivos]);
 
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      if (proyectoIdFromUrl) setProyectoId(proyectoIdFromUrl);
+      if (objetivoIdFromUrl) setObjetivoId(objetivoIdFromUrl);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [objetivoIdFromUrl, proyectoIdFromUrl]);
+
+  const proyectoSeleccionado = useMemo(() => {
+    return proyectos.find((proyecto) => proyecto.id === proyectoId) ?? null;
+  }, [proyectos, proyectoId]);
+
+  const objetivosFiltrados = useMemo(() => {
+    return proyectoId
+      ? objetivos.filter((objetivo) => objetivo.proyecto_id === proyectoId)
+      : objetivos;
+  }, [objetivos, proyectoId]);
+
+  const objetivoSeleccionado = useMemo(() => {
+    return objetivos.find((objetivo) => objetivo.id === objetivoId) ?? null;
+  }, [objetivos, objetivoId]);
+
+  const tareasFiltradas = useMemo(() => {
+    const term = search.trim().toLowerCase();
+
+    return tareas.filter((tarea) => {
+      const coincideTexto =
+        !term ||
+        tarea.titulo.toLowerCase().includes(term) ||
+        tarea.descripcion?.toLowerCase().includes(term) ||
+        tarea.estado.toLowerCase().includes(term) ||
+        tarea.prioridad.toLowerCase().includes(term) ||
+        tarea.proyecto?.nombre.toLowerCase().includes(term) ||
+        tarea.objetivo?.titulo.toLowerCase().includes(term);
+
+      const coincideEstado =
+        estadoFiltro === "todos" || tarea.estado === estadoFiltro;
+
+      const coincidePrioridad =
+        prioridadFiltro === "todas" || tarea.prioridad === prioridadFiltro;
+
+      const coincideProyecto = proyectoId ? tarea.proyecto?.id === proyectoId : true;
+      const coincideObjetivo = objetivoId ? tarea.objetivo?.id === objetivoId : true;
+
+      return (
+        coincideTexto &&
+        coincideEstado &&
+        coincidePrioridad &&
+        coincideProyecto &&
+        coincideObjetivo
+      );
+    });
+  }, [estadoFiltro, objetivoId, prioridadFiltro, proyectoId, search, tareas]);
+
   const tareasPorEstado = useMemo(() => {
     return estadosTarea.reduce<Record<EstadoTarea, TareaResumen[]>>(
       (acc, estadoItem) => {
-        acc[estadoItem.key] = tareas.filter((tarea) => tarea.estado === estadoItem.key);
+        acc[estadoItem.key] = tareasFiltradas.filter(
+          (tarea) => tarea.estado === estadoItem.key
+        );
+
         return acc;
       },
       {
@@ -200,25 +317,31 @@ export default function TareasPage() {
         terminada: [],
       }
     );
-  }, [tareas]);
+  }, [tareasFiltradas]);
 
-  const proyectoSeleccionado = useMemo(() => {
-    return proyectos.find((proyecto) => proyecto.id === proyectoId);
-  }, [proyectos, proyectoId]);
-
-  const objetivosFiltrados = useMemo(() => {
-    return proyectoId ? objetivos.filter((objetivo) => objetivo.proyecto_id === proyectoId) : objetivos;
-  }, [objetivos, proyectoId]);
-
-  const objetivoSeleccionado = useMemo(() => {
-    return objetivos.find((objetivo) => objetivo.id === objetivoId);
-  }, [objetivos, objetivoId]);
+  const metricas = useMemo(() => {
+    return {
+      total: tareasFiltradas.length,
+      pendientes: tareasPorEstado.pendiente.length,
+      hoy: tareasPorEstado.hoy.length,
+      enProceso: tareasPorEstado.en_proceso.length,
+      bloqueadas: tareasPorEstado.bloqueada.length,
+      terminadas: tareasPorEstado.terminada.length,
+    };
+  }, [tareasFiltradas.length, tareasPorEstado]);
 
   function resetForm() {
     setTitulo("");
     setDescripcion("");
-    setProyectoId("");
-    setObjetivoId("");
+
+    if (!proyectoIdFromUrl) {
+      setProyectoId("");
+    }
+
+    if (!objetivoIdFromUrl) {
+      setObjetivoId("");
+    }
+
     setPrioridad("media");
     setEstado("pendiente");
     setFechaInicio("");
@@ -232,33 +355,38 @@ export default function TareasPage() {
     setError("");
     setMessage("");
 
-    startTransition(async () => {
-      try {
-        if (fechaInicio && fechaLimite && fechaInicio > fechaLimite) {
-          throw new Error("La fecha de inicio no puede ser mayor que la fecha límite.");
+    startTransition(() => {
+      void (async () => {
+        try {
+          if (fechasInvalidas) {
+            throw new Error(
+              "La fecha de inicio no puede ser mayor que la fecha límite."
+            );
+          }
+
+          await crearTarea({
+            titulo,
+            descripcion,
+            proyectoId,
+            objetivoId,
+            prioridad,
+            estado,
+            fecha: fechaInicio,
+            fechaInicio,
+            fechaLimite,
+            recordatorio,
+          });
+
+          resetForm();
+          setMessage("Tarea creada correctamente.");
+          await loadTareas();
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "No se pudo crear la tarea.";
+
+          setError(message);
         }
-
-        await crearTarea({
-          titulo,
-          descripcion,
-          proyectoId,
-          objetivoId,
-          prioridad,
-          estado,
-          fecha: fechaInicio,
-          fechaInicio,
-          fechaLimite,
-          recordatorio,
-        });
-
-        resetForm();
-        setMessage("Tarea creada correctamente.");
-        await loadTareas();
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "No se pudo crear la tarea.";
-
-        setError(message);
-      }
+      })();
     });
   }
 
@@ -267,491 +395,584 @@ export default function TareasPage() {
     setMessage("");
     setUpdatingTareaId(tareaId);
 
-    startTransition(async () => {
-      try {
-        await cambiarEstadoTarea(tareaId, nuevoEstado);
-        setMessage("Estado de tarea actualizado correctamente.");
-        await loadTareas();
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "No se pudo actualizar el estado de la tarea.";
+    startTransition(() => {
+      void (async () => {
+        try {
+          await cambiarEstadoTarea(tareaId, nuevoEstado);
+          setMessage("Estado de tarea actualizado correctamente.");
+          await loadTareas();
+        } catch (err) {
+          const message =
+            err instanceof Error
+              ? err.message
+              : "No se pudo actualizar el estado de la tarea.";
 
-        setError(message);
-      } finally {
-        setUpdatingTareaId(null);
-      }
+          setError(message);
+        } finally {
+          setUpdatingTareaId(null);
+        }
+      })();
     });
   }
 
   return (
     <AppShell
       title="Tareas"
-      description="Acciones concretas con estado, prioridad, fecha y recordatorio."
+      description="Crea, filtra y actualiza tus tareas desde una vista compacta."
     >
-      <div className="grid gap-6">
-        <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-          <div className="relative grid gap-6 p-6 md:grid-cols-[1fr_340px] md:p-8">
-            <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-violet-100 blur-3xl" />
-
-            <div className="relative">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 py-2 text-sm font-medium text-violet-700">
-                <ListTodo className="h-4 w-4" />
-                Acciones concretas
-              </div>
-
-              <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-slate-950 md:text-4xl">
-                Una tarea debe decir exactamente qué hacer.
-              </h2>
-
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 md:text-base">
-                Las tareas convierten tus ideas y objetivos en pasos claros. Aquí puedes crearlas,
-                programarlas y verlas agrupadas por estado.
-              </p>
-
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Button
-                  size="lg"
-                  className="rounded-2xl"
-                  onClick={() => {
-                    document
-                      .getElementById("crear-tarea")
-                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                >
-                  <Plus className="mr-2 h-5 w-5" />
-                  Nueva tarea
-                </Button>
-
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="rounded-2xl"
-                  onClick={() => void loadTareas()}
-                  disabled={loadingTareas}
-                >
-                  <Clock3 className="mr-2 h-5 w-5" />
-                  {loadingTareas ? "Actualizando..." : "Actualizar"}
-                </Button>
-              </div>
-            </div>
-
-            <Card className="relative rounded-[2rem] border-slate-200 bg-slate-950 p-6 text-white shadow-sm">
-              <p className="text-sm font-medium text-slate-400">Regla del módulo</p>
-              <h3 className="mt-2 text-2xl font-semibold">Si no se puede ejecutar, no es tarea.</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-300">
-                Una tarea debe ser una acción específica. Si todavía es muy amplia, probablemente
-                pertenece a objetivos o ideas.
-              </p>
-
-              <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-4">
-                <p className="text-sm leading-6 text-slate-300">
-                  Ya puedes crear tareas reales asociadas a proyectos.
-                </p>
-              </div>
-            </Card>
-          </div>
-        </section>
-
-        {error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-            {error}
-          </div>
-        ) : null}
+      <div className="space-y-5">
+        {error ? <div className={theme.alerts.error}>{error}</div> : null}
 
         {message ? (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+          <div className={`flex items-center gap-2 ${theme.alerts.success}`}>
+            <CheckCircle2 className="h-4 w-4" />
             {message}
           </div>
         ) : null}
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {estadosTarea.map((item) => {
-            const Icon = item.icon;
-            const total = tareasPorEstado[item.key]?.length ?? 0;
+        <Card id="crear-tarea" className={theme.card.base}>
+  <div className="mb-5 flex flex-col gap-2">
+    <p className={theme.text.kicker}>Nueva tarea</p>
 
-            return (
-              <Card
-                key={item.key}
-                className="rounded-[1.75rem] border-slate-200 bg-white p-5 shadow-sm"
-              >
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <div className="rounded-2xl bg-slate-100 p-3 text-slate-700">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
-                    {total}
-                  </span>
-                </div>
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <h2 className="text-2xl font-black text-slate-950">
+          Crear tarea rápida
+        </h2>
 
-                <h3 className="font-bold text-slate-950">{item.title}</h3>
-                <p className="mt-2 text-sm leading-5 text-slate-500">{item.description}</p>
-              </Card>
-            );
-          })}
-        </section>
+        <p className={`${theme.text.body} mt-1 max-w-2xl`}>
+          Registra una acción concreta. Puedes asociarla a un proyecto, objetivo,
+          prioridad, estado y fechas.
+        </p>
+      </div>
 
-        <section className="grid gap-6 lg:grid-cols-[1fr_380px]">
-          <Card className="rounded-[2rem] border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-5">
-              <h2 className="text-xl font-bold text-slate-950">Tareas por estado</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Vista real de tus tareas guardadas en Supabase.
+      <Button
+        type="button"
+        variant="outline"
+        className={theme.button.secondaryLarge}
+        onClick={() => void loadTareas()}
+        disabled={loadingTareas}
+      >
+        <RefreshCcw
+          className={`mr-2 h-4 w-4 ${loadingTareas ? "animate-spin" : ""}`}
+        />
+        {loadingTareas ? "Actualizando" : "Actualizar"}
+      </Button>
+    </div>
+  </div>
+
+  {proyectoSeleccionado || objetivoSeleccionado ? (
+    <div className="mb-5 grid gap-3 md:grid-cols-2">
+      {proyectoSeleccionado ? (
+        <div className="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-700">
+            Proyecto
+          </p>
+
+          <p className="mt-1 truncate text-sm font-black text-slate-950">
+            {proyectoSeleccionado.nombre}
+          </p>
+        </div>
+      ) : null}
+
+      {objetivoSeleccionado ? (
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
+            Objetivo
+          </p>
+
+          <p className="mt-1 truncate text-sm font-black text-slate-950">
+            {objetivoSeleccionado.titulo}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  ) : null}
+
+  <form onSubmit={handleSubmit} className="grid gap-5">
+    <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid gap-2">
+        <label htmlFor="titulo" className="text-sm font-black text-slate-700">
+          Título
+        </label>
+
+        <Input
+          id="titulo"
+          name="titulo"
+          placeholder="Ej: Revisar tareas pendientes del proyecto"
+          value={titulo}
+          onChange={(event) => setTitulo(event.target.value)}
+          className={theme.input.base}
+          required
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <label htmlFor="estado" className="text-sm font-black text-slate-700">
+          Estado inicial
+        </label>
+
+        <select
+          id="estado"
+          name="estado"
+          value={estado}
+          onChange={(event) => setEstado(event.target.value as EstadoTarea)}
+          className={theme.input.select}
+        >
+          {estadosTarea.map((item) => (
+            <option key={item.key} value={item.key}>
+              {item.title}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+
+    <div className="grid gap-2">
+      <label
+        htmlFor="descripcion"
+        className="text-sm font-black text-slate-700"
+      >
+        Descripción opcional
+      </label>
+
+      <Textarea
+        id="descripcion"
+        name="descripcion"
+        placeholder="Detalles, contexto o pasos necesarios..."
+        value={descripcion}
+        onChange={(event) => setDescripcion(event.target.value)}
+        className={`${theme.input.textarea} min-h-24`}
+      />
+    </div>
+
+    <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-2">
+        <label
+          htmlFor="proyectoId"
+          className="text-sm font-black text-slate-700"
+        >
+          Proyecto
+        </label>
+
+        <select
+          id="proyectoId"
+          name="proyectoId"
+          value={proyectoId}
+          onChange={(event) => {
+            setProyectoId(event.target.value);
+            setObjetivoId("");
+          }}
+          disabled={loadingProyectos || Boolean(proyectoIdFromUrl)}
+          className={theme.input.select}
+        >
+          <option value="">
+            {loadingProyectos ? "Cargando proyectos..." : "Sin proyecto"}
+          </option>
+
+          {proyectos.map((proyecto) => (
+            <option key={proyecto.id} value={proyecto.id}>
+              {proyecto.nombre}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="grid gap-2">
+        <label
+          htmlFor="objetivoId"
+          className="text-sm font-black text-slate-700"
+        >
+          Objetivo
+        </label>
+
+        <select
+          id="objetivoId"
+          name="objetivoId"
+          value={objetivoId}
+          onChange={(event) => setObjetivoId(event.target.value)}
+          disabled={loadingObjetivos || Boolean(objetivoIdFromUrl)}
+          className={theme.input.select}
+        >
+          <option value="">
+            {loadingObjetivos ? "Cargando objetivos..." : "Sin objetivo"}
+          </option>
+
+          {objetivosFiltrados.map((objetivo) => (
+            <option key={objetivo.id} value={objetivo.id}>
+              {objetivo.titulo}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="grid gap-2">
+        <label
+          htmlFor="prioridad"
+          className="text-sm font-black text-slate-700"
+        >
+          Prioridad
+        </label>
+
+        <select
+          id="prioridad"
+          name="prioridad"
+          value={prioridad}
+          onChange={(event) =>
+            setPrioridad(event.target.value as PrioridadTarea)
+          }
+          className={theme.input.select}
+        >
+          <option value="baja">Baja</option>
+          <option value="media">Media</option>
+          <option value="alta">Alta</option>
+        </select>
+      </div>
+    </div>
+
+    <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-2">
+        <label
+          htmlFor="fechaInicio"
+          className="text-sm font-black text-slate-700"
+        >
+          Inicio
+        </label>
+
+        <Input
+          id="fechaInicio"
+          name="fechaInicio"
+          type="date"
+          value={fechaInicio}
+          onChange={(event) => setFechaInicio(event.target.value)}
+          className={theme.input.base}
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <label
+          htmlFor="fechaLimite"
+          className="text-sm font-black text-slate-700"
+        >
+          Fin
+        </label>
+
+        <Input
+          id="fechaLimite"
+          name="fechaLimite"
+          type="date"
+          value={fechaLimite}
+          onChange={(event) => setFechaLimite(event.target.value)}
+          className={theme.input.base}
+        />
+      </div>
+
+      <div className="grid gap-2">
+        <label
+          htmlFor="recordatorio"
+          className="text-sm font-black text-slate-700"
+        >
+          Recordatorio
+        </label>
+
+        <Input
+          id="recordatorio"
+          name="recordatorio"
+          type="date"
+          value={recordatorio}
+          onChange={(event) => setRecordatorio(event.target.value)}
+          className={theme.input.base}
+        />
+      </div>
+    </div>
+
+    {fechasInvalidas ? (
+      <div className={theme.alerts.warning}>
+        La fecha de inicio no puede ser mayor que la fecha límite.
+      </div>
+    ) : null}
+
+    <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm font-medium text-slate-500">
+        La tarea aparecerá en la tabla inferior y en el calendario si tiene fecha.
+      </p>
+
+      <Button
+        type="submit"
+        size="lg"
+        className={theme.button.primaryLarge}
+        disabled={isPending || fechasInvalidas}
+      >
+        <Plus className="mr-2 h-5 w-5" />
+        {isPending ? "Creando..." : "Crear tarea"}
+      </Button>
+    </div>
+  </form>
+</Card>
+
+        <Card className={theme.card.base}>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className={theme.text.kicker}>Lista de tareas</p>
+
+              <h2 className="mt-2 text-2xl font-black text-slate-950">
+                Todas las tareas
+              </h2>
+
+              <p className={`${theme.text.body} mt-2 max-w-2xl`}>
+                Mostrando {metricas.total} tarea{metricas.total === 1 ? "" : "s"} según los filtros actuales.
               </p>
             </div>
 
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
+                Total
+              </p>
+              <p className="mt-1 text-2xl font-black text-slate-950">
+                {metricas.total}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 xl:grid-cols-[1fr_190px_auto]">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar tarea, proyecto, objetivo, estado..."
+                className={theme.input.search}
+              />
+            </div>
+
+            <div className="relative">
+              <Filter className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+
+              <select
+                value={prioridadFiltro}
+                onChange={(event) =>
+                  setPrioridadFiltro(event.target.value as FiltroPrioridad)
+                }
+                className={`${theme.input.select} w-full pl-11`}
+              >
+                {filtrosPrioridad.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className={theme.button.secondaryLarge}
+              onClick={() => {
+                setSearch("");
+                setEstadoFiltro("todos");
+                setPrioridadFiltro("todas");
+
+                if (!proyectoIdFromUrl) setProyectoId("");
+                if (!objetivoIdFromUrl) setObjetivoId("");
+              }}
+            >
+              Limpiar filtros
+            </Button>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {filtrosEstado.map((filtro) => {
+              const active = estadoFiltro === filtro.value;
+
+              return (
+                <button
+                  key={filtro.value}
+                  type="button"
+                  onClick={() => setEstadoFiltro(filtro.value)}
+                  className={`h-10 rounded-2xl px-4 text-sm font-black transition ${active
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-slate-50 hover:text-slate-950"
+                    }`}
+                >
+                  {filtro.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-5">
             {loadingTareas ? (
-              <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-                <p className="text-sm font-medium text-slate-500">Cargando tareas...</p>
+              <div className="grid gap-3">
+                {[1, 2, 3, 4, 5].map((item) => (
+                  <div
+                    key={item}
+                    className="h-14 animate-pulse rounded-2xl bg-slate-100"
+                  />
+                ))}
               </div>
             ) : tareas.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
-                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">
-                  <ListTodo className="h-5 w-5" />
-                </div>
-                <p className="font-semibold text-slate-800">Todavía no hay tareas</p>
-                <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500">
-                  Crea tu primera tarea desde el formulario de la derecha.
+              <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                <ListTodo className="mx-auto h-8 w-8 text-slate-400" />
+
+                <h3 className="mt-4 text-xl font-black text-slate-950">
+                  Todavía no hay tareas
+                </h3>
+
+                <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-6 text-slate-500">
+                  Crea tu primera tarea desde el formulario superior.
+                </p>
+              </div>
+            ) : tareasFiltradas.length === 0 ? (
+              <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+                <Search className="mx-auto h-8 w-8 text-slate-400" />
+
+                <h3 className="mt-4 text-xl font-black text-slate-950">
+                  No se encontraron tareas
+                </h3>
+
+                <p className="mx-auto mt-2 max-w-md text-sm font-medium leading-6 text-slate-500">
+                  Cambia los filtros para ver otras tareas.
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4 xl:grid-cols-2">
-                {estadosTarea.map((estadoItem) => {
-                  const items = tareasPorEstado[estadoItem.key] ?? [];
+              <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white">
+                <table className="w-full border-collapse">
+                  <thead className="bg-slate-50">
+                    <tr className="border-b border-slate-200 text-left">
+                      <th className="px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                        Tarea
+                      </th>
+                      <th className="px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                        Proyecto
+                      </th>
+                      <th className="px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                        Objetivo
+                      </th>
+                      <th className="px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                        Prioridad
+                      </th>
+                      <th className="px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                        Inicio
+                      </th>
+                      <th className="px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                        Fin
+                      </th>
+                      <th className="px-4 py-3 text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                        Estado
+                      </th>
+                    </tr>
+                  </thead>
 
-                  return (
-                    <div
-                      key={estadoItem.key}
-                      className="rounded-3xl border border-slate-200 bg-slate-50 p-4"
-                    >
-                      <div className="mb-4 flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-slate-800">{estadoItem.title}</h3>
-                          <p className="text-xs text-slate-500">{items.length} tareas</p>
-                        </div>
+                  <tbody>
+                    {tareasFiltradas.map((tarea) => {
+                      const isUpdating = isPending && updatingTareaId === tarea.id;
 
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
-                            estadoStyles[estadoItem.key]
-                          }`}
+                      return (
+                        <tr
+                          key={tarea.id}
+                          className="border-b border-slate-100 transition last:border-b-0 hover:bg-slate-50"
                         >
-                          {getEstadoLabel(estadoItem.key)}
-                        </span>
-                      </div>
+                          <td className="px-4 py-3 align-top">
+                            <p className="line-clamp-1 text-sm font-black text-slate-950">
+                              {tarea.titulo}
+                            </p>
 
-                      {items.length === 0 ? (
-                        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-5 text-center">
-                          <p className="text-xs leading-5 text-slate-500">
-                            Sin tareas en este estado.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="grid gap-3">
-                          {items.map((tarea) => (
-                            <div
-                              key={tarea.id}
-                              className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
+                            <p className="mt-1 line-clamp-1 text-xs font-medium text-slate-500">
+                              {tarea.descripcion || "Sin descripción"}
+                            </p>
+                          </td>
+
+                          <td className="px-4 py-3 align-top">
+                            {tarea.proyecto ? (
+                              <span className="inline-flex max-w-[180px] items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100">
+                                <FolderKanban className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">{tarea.proyecto.nombre}</span>
+                              </span>
+                            ) : (
+                              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500 ring-1 ring-slate-200">
+                                Sin proyecto
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="px-4 py-3 align-top">
+                            {tarea.objetivo ? (
+                              <span className="inline-flex max-w-[180px] items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
+                                <Target className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">{tarea.objetivo.titulo}</span>
+                              </span>
+                            ) : (
+                              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500 ring-1 ring-slate-200">
+                                Sin objetivo
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="px-4 py-3 align-top">
+                            <span
+                              className={`${theme.badge.base} ${prioridadStyles[tarea.prioridad]}`}
                             >
-                              <div className="mb-2 flex flex-wrap items-center gap-2">
-                                <span
-                                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                    prioridadStyles[tarea.prioridad]
-                                  }`}
-                                >
-                                  {tarea.prioridad}
-                                </span>
+                              {capitalizar(tarea.prioridad)}
+                            </span>
+                          </td>
 
-                                {tarea.proyecto ? (
-                                  <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-100">
-                                    <FolderKanban className="h-3.5 w-3.5" />
-                                    {tarea.proyecto.nombre}
-                                  </span>
-                                ) : (
-                                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-400">
-                                    Sin proyecto
-                                  </span>
-                                )}
+                          <td className="px-4 py-3 align-top text-xs font-bold text-slate-500">
+                            {formatFecha(tarea.fecha_inicio || tarea.fecha)}
+                          </td>
 
-                                {tarea.objetivo ? (
-                                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
-                                    <Target className="h-3.5 w-3.5" />
-                                    {tarea.objetivo.titulo}
-                                  </span>
-                                ) : null}
-                              </div>
+                          <td className="px-4 py-3 align-top text-xs font-bold text-slate-500">
+                            {formatFecha(tarea.fecha_limite || tarea.fecha)}
+                          </td>
 
-                              <h4 className="font-bold text-slate-950">{tarea.titulo}</h4>
-
-                              {tarea.descripcion ? (
-                                <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-500">
-                                  {tarea.descripcion}
-                                </p>
-                              ) : (
-                                <p className="mt-1 text-sm text-slate-400">Sin descripción</p>
-                              )}
-
-                              <div className="mt-3 grid gap-3">
-                                <div className="grid gap-2 text-xs font-medium text-slate-400">
-                                  <div className="flex items-center gap-2">
-                                    <CalendarDays className="h-3.5 w-3.5" />
-                                    Inicio: {formatFecha(tarea.fecha_inicio || tarea.fecha)}
-                                  </div>
-
-                                  <div className="flex items-center gap-2">
-                                    <CalendarDays className="h-3.5 w-3.5" />
-                                    Fin: {formatFecha(tarea.fecha_limite || tarea.fecha)}
-                                  </div>
-
-                                  <div className="flex items-center gap-2">
-                                    <Clock3 className="h-3.5 w-3.5" />
-                                    Recordatorio: {formatFecha(tarea.recordatorio)}
-                                  </div>
-                                </div>
-
-                                <div className="grid gap-1.5">
-                                  <label
-                                    htmlFor={`estado-tarea-${tarea.id}`}
-                                    className="text-xs font-semibold text-slate-500"
-                                  >
-                                    Cambiar estado
-                                  </label>
-
-                                  <select
-                                    id={`estado-tarea-${tarea.id}`}
-                                    value={tarea.estado}
-                                    disabled={isPending && updatingTareaId === tarea.id}
-                                    onChange={(event) =>
-                                      handleCambiarEstadoTarea(
-                                        tarea.id,
-                                        event.target.value as EstadoTarea
-                                      )
-                                    }
-                                    className="h-9 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 shadow-xs outline-none transition focus:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
-                                  >
-                                    {estadosTarea.map((estadoItem) => (
-                                      <option key={estadoItem.key} value={estadoItem.key}>
-                                        {estadoItem.title}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                          <td className="px-4 py-3 align-top">
+                            <select
+                              value={tarea.estado}
+                              disabled={isUpdating}
+                              onChange={(event) =>
+                                handleCambiarEstadoTarea(
+                                  tarea.id,
+                                  event.target.value as EstadoTarea
+                                )
+                              }
+                              className="h-10 min-w-[145px] rounded-2xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {estadosTarea.map((estadoItem) => (
+                                <option key={estadoItem.key} value={estadoItem.key}>
+                                  {estadoItem.title}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
-          </Card>
-
-          <div className="grid gap-6">
-            <Card
-              id="crear-tarea"
-              className="rounded-[2rem] border-slate-200 bg-white p-6 shadow-sm"
-            >
-              <div className="mb-5">
-                <h2 className="text-lg font-bold text-slate-950">Nueva tarea</h2>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
-                  Crea una acción concreta y asígnala a un proyecto si aplica.
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="grid gap-4">
-                <div className="grid gap-2">
-                  <label htmlFor="titulo" className="text-sm font-semibold text-slate-700">
-                    Título
-                  </label>
-                  <Input
-                    id="titulo"
-                    name="titulo"
-                    placeholder="Ej: Publicar campaña de recordatorios"
-                    value={titulo}
-                    onChange={(event) => setTitulo(event.target.value)}
-                    className="rounded-2xl"
-                    required
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <label htmlFor="descripcion" className="text-sm font-semibold text-slate-700">
-                    Descripción opcional
-                  </label>
-                  <Textarea
-                    id="descripcion"
-                    name="descripcion"
-                    placeholder="Detalles, contexto o pasos necesarios..."
-                    value={descripcion}
-                    onChange={(event) => setDescripcion(event.target.value)}
-                    className="min-h-28 rounded-2xl"
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <label htmlFor="proyectoId" className="text-sm font-semibold text-slate-700">
-                    Proyecto opcional
-                  </label>
-                  <select
-                    id="proyectoId"
-                    name="proyectoId"
-                    value={proyectoId}
-                    onChange={(event) => {
-                      setProyectoId(event.target.value);
-                      setObjetivoId("");
-                    }}
-                    disabled={loadingProyectos}
-                    className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-xs outline-none transition focus:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <option value="">
-                      {loadingProyectos ? "Cargando proyectos..." : "Sin proyecto"}
-                    </option>
-
-                    {proyectos.map((proyecto) => (
-                      <option key={proyecto.id} value={proyecto.id}>
-                        {proyecto.nombre}
-                      </option>
-                    ))}
-                  </select>
-
-                  <p className="text-xs leading-5 text-slate-400">
-                    {proyectoSeleccionado
-                      ? `Se asociará a: ${proyectoSeleccionado.nombre}`
-                      : "Puedes crear la tarea sin proyecto y organizarla después."}
-                  </p>
-                </div>
-
-                <div className="grid gap-2">
-                  <label htmlFor="objetivoId" className="text-sm font-semibold text-slate-700">
-                    Objetivo opcional
-                  </label>
-                  <select
-                    id="objetivoId"
-                    name="objetivoId"
-                    value={objetivoId}
-                    onChange={(event) => setObjetivoId(event.target.value)}
-                    disabled={loadingObjetivos}
-                    className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-xs outline-none transition focus:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <option value="">
-                      {loadingObjetivos ? "Cargando objetivos..." : "Sin objetivo"}
-                    </option>
-
-                    {objetivosFiltrados.map((objetivo) => (
-                      <option key={objetivo.id} value={objetivo.id}>
-                        {objetivo.titulo}
-                      </option>
-                    ))}
-                  </select>
-
-                  <p className="text-xs leading-5 text-slate-400">
-                    {objetivoSeleccionado
-                      ? `Se asociará al objetivo: ${objetivoSeleccionado.titulo}`
-                      : proyectoId
-                        ? "Solo se muestran objetivos activos o pausados de este proyecto."
-                        : "Puedes asociar la tarea a un objetivo activo o pausado."}
-                  </p>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="grid gap-2">
-                    <label htmlFor="prioridad" className="text-sm font-semibold text-slate-700">
-                      Prioridad
-                    </label>
-                    <select
-                      id="prioridad"
-                      name="prioridad"
-                      value={prioridad}
-                      onChange={(event) => setPrioridad(event.target.value as PrioridadTarea)}
-                      className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-xs outline-none transition focus:border-slate-400"
-                    >
-                      <option value="baja">Baja</option>
-                      <option value="media">Media</option>
-                      <option value="alta">Alta</option>
-                    </select>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="estado" className="text-sm font-semibold text-slate-700">
-                      Estado
-                    </label>
-                    <select
-                      id="estado"
-                      name="estado"
-                      value={estado}
-                      onChange={(event) => setEstado(event.target.value as EstadoTarea)}
-                      className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-xs outline-none transition focus:border-slate-400"
-                    >
-                      {estadosTarea.map((item) => (
-                        <option key={item.key} value={item.key}>
-                          {item.title}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="grid gap-2">
-                    <label htmlFor="fechaInicio" className="text-sm font-semibold text-slate-700">
-                      Inicio opcional
-                    </label>
-                    <Input
-                      id="fechaInicio"
-                      name="fechaInicio"
-                      type="date"
-                      value={fechaInicio}
-                      onChange={(event) => setFechaInicio(event.target.value)}
-                      className="rounded-2xl"
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="fechaLimite" className="text-sm font-semibold text-slate-700">
-                      Fin opcional
-                    </label>
-                    <Input
-                      id="fechaLimite"
-                      name="fechaLimite"
-                      type="date"
-                      value={fechaLimite}
-                      onChange={(event) => setFechaLimite(event.target.value)}
-                      className="rounded-2xl"
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <label htmlFor="recordatorio" className="text-sm font-semibold text-slate-700">
-                      Recordatorio opcional
-                    </label>
-                    <Input
-                      id="recordatorio"
-                      name="recordatorio"
-                      type="date"
-                      value={recordatorio}
-                      onChange={(event) => setRecordatorio(event.target.value)}
-                      className="rounded-2xl"
-                    />
-                  </div>
-                </div>
-
-                <Button type="submit" size="lg" className="rounded-2xl" disabled={isPending}>
-                  <Plus className="mr-2 h-5 w-5" />
-                  {isPending ? "Creando..." : "Crear tarea"}
-                </Button>
-              </form>
-            </Card>
-
-            <Card className="rounded-[2rem] border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-slate-950">Próximo paso</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                Luego conectaremos la conversión directa desde Ideas para que una idea cree una
-                tarea y quede marcada como convertida.
-              </p>
-            </Card>
           </div>
-        </section>
+        </Card>
       </div>
     </AppShell>
+  );
+}
+
+export default function TareasPage() {
+  return (
+    <Suspense
+      fallback={
+        <AppShell
+          title="Tareas"
+          description="Acciones concretas con estado, prioridad, fecha y recordatorio."
+        >
+          <div className={theme.card.base}>
+            <p className={theme.text.muted}>Cargando tareas...</p>
+          </div>
+        </AppShell>
+      }
+    >
+      <TareasContent />
+    </Suspense>
   );
 }
