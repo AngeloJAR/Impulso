@@ -431,284 +431,284 @@ function TareasContent() {
         ) : null}
 
         <Card id="crear-tarea" className={theme.card.base}>
-  <div className="mb-5 flex flex-col gap-2">
-    <p className={theme.text.kicker}>Nueva tarea</p>
+          <div className="mb-5 flex flex-col gap-2">
+            <p className={theme.text.kicker}>Nueva tarea</p>
 
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-      <div>
-        <h2 className="text-2xl font-black text-slate-950">
-          Crear tarea rápida
-        </h2>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <h2 className="text-2xl font-black text-slate-950">
+                  Crear tarea rápida
+                </h2>
 
-        <p className={`${theme.text.body} mt-1 max-w-2xl`}>
-          Registra una acción concreta. Puedes asociarla a un proyecto, objetivo,
-          prioridad, estado y fechas.
-        </p>
-      </div>
+                <p className={`${theme.text.body} mt-1 max-w-2xl`}>
+                  Registra una acción concreta. Puedes asociarla a un proyecto, objetivo,
+                  prioridad, estado y fechas.
+                </p>
+              </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        className={theme.button.secondaryLarge}
-        onClick={() => void loadTareas()}
-        disabled={loadingTareas}
-      >
-        <RefreshCcw
-          className={`mr-2 h-4 w-4 ${loadingTareas ? "animate-spin" : ""}`}
-        />
-        {loadingTareas ? "Actualizando" : "Actualizar"}
-      </Button>
-    </div>
-  </div>
+              <Button
+                type="button"
+                variant="outline"
+                className={theme.button.secondaryLarge}
+                onClick={() => void loadTareas()}
+                disabled={loadingTareas}
+              >
+                <RefreshCcw
+                  className={`mr-2 h-4 w-4 ${loadingTareas ? "animate-spin" : ""}`}
+                />
+                {loadingTareas ? "Actualizando" : "Actualizar"}
+              </Button>
+            </div>
+          </div>
 
-  {proyectoSeleccionado || objetivoSeleccionado ? (
-    <div className="mb-5 grid gap-3 md:grid-cols-2">
-      {proyectoSeleccionado ? (
-        <div className="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-700">
-            Proyecto
-          </p>
+          {proyectoSeleccionado || objetivoSeleccionado ? (
+            <div className="mb-5 grid gap-3 md:grid-cols-2">
+              {proyectoSeleccionado ? (
+                <div className="rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-sky-700">
+                    Proyecto
+                  </p>
 
-          <p className="mt-1 truncate text-sm font-black text-slate-950">
-            {proyectoSeleccionado.nombre}
-          </p>
-        </div>
-      ) : null}
+                  <p className="mt-1 truncate text-sm font-black text-slate-950">
+                    {proyectoSeleccionado.nombre}
+                  </p>
+                </div>
+              ) : null}
 
-      {objetivoSeleccionado ? (
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
-          <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
-            Objetivo
-          </p>
+              {objetivoSeleccionado ? (
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
+                    Objetivo
+                  </p>
 
-          <p className="mt-1 truncate text-sm font-black text-slate-950">
-            {objetivoSeleccionado.titulo}
-          </p>
-        </div>
-      ) : null}
-    </div>
-  ) : null}
+                  <p className="mt-1 truncate text-sm font-black text-slate-950">
+                    {objetivoSeleccionado.titulo}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
-  <form onSubmit={handleSubmit} className="grid gap-5">
-    <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-      <div className="grid gap-2">
-        <label htmlFor="titulo" className="text-sm font-black text-slate-700">
-          Título
-        </label>
+          <form onSubmit={handleSubmit} className="grid gap-5">
+            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="grid gap-2">
+                <label htmlFor="titulo" className="text-sm font-black text-slate-700">
+                  Título
+                </label>
 
-        <Input
-          id="titulo"
-          name="titulo"
-          placeholder="Ej: Revisar tareas pendientes del proyecto"
-          value={titulo}
-          onChange={(event) => setTitulo(event.target.value)}
-          className={theme.input.base}
-          required
-        />
-      </div>
+                <Input
+                  id="titulo"
+                  name="titulo"
+                  placeholder="Ej: Revisar tareas pendientes del proyecto"
+                  value={titulo}
+                  onChange={(event) => setTitulo(event.target.value)}
+                  className={theme.input.base}
+                  required
+                />
+              </div>
 
-      <div className="grid gap-2">
-        <label htmlFor="estado" className="text-sm font-black text-slate-700">
-          Estado inicial
-        </label>
+              <div className="grid gap-2">
+                <label htmlFor="estado" className="text-sm font-black text-slate-700">
+                  Estado inicial
+                </label>
 
-        <select
-          id="estado"
-          name="estado"
-          value={estado}
-          onChange={(event) => setEstado(event.target.value as EstadoTarea)}
-          className={theme.input.select}
-        >
-          {estadosTarea.map((item) => (
-            <option key={item.key} value={item.key}>
-              {item.title}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
+                <select
+                  id="estado"
+                  name="estado"
+                  value={estado}
+                  onChange={(event) => setEstado(event.target.value as EstadoTarea)}
+                  className={theme.input.select}
+                >
+                  {estadosTarea.map((item) => (
+                    <option key={item.key} value={item.key}>
+                      {item.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-    <div className="grid gap-2">
-      <label
-        htmlFor="descripcion"
-        className="text-sm font-black text-slate-700"
-      >
-        Descripción opcional
-      </label>
+            <div className="grid gap-2">
+              <label
+                htmlFor="descripcion"
+                className="text-sm font-black text-slate-700"
+              >
+                Descripción opcional
+              </label>
 
-      <Textarea
-        id="descripcion"
-        name="descripcion"
-        placeholder="Detalles, contexto o pasos necesarios..."
-        value={descripcion}
-        onChange={(event) => setDescripcion(event.target.value)}
-        className={`${theme.input.textarea} min-h-24`}
-      />
-    </div>
+              <Textarea
+                id="descripcion"
+                name="descripcion"
+                placeholder="Detalles, contexto o pasos necesarios..."
+                value={descripcion}
+                onChange={(event) => setDescripcion(event.target.value)}
+                className={`${theme.input.textarea} min-h-24`}
+              />
+            </div>
 
-    <div className="grid gap-4 md:grid-cols-3">
-      <div className="grid gap-2">
-        <label
-          htmlFor="proyectoId"
-          className="text-sm font-black text-slate-700"
-        >
-          Proyecto
-        </label>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-2">
+                <label
+                  htmlFor="proyectoId"
+                  className="text-sm font-black text-slate-700"
+                >
+                  Proyecto
+                </label>
 
-        <select
-          id="proyectoId"
-          name="proyectoId"
-          value={proyectoId}
-          onChange={(event) => {
-            setProyectoId(event.target.value);
-            setObjetivoId("");
-          }}
-          disabled={loadingProyectos || Boolean(proyectoIdFromUrl)}
-          className={theme.input.select}
-        >
-          <option value="">
-            {loadingProyectos ? "Cargando proyectos..." : "Sin proyecto"}
-          </option>
+                <select
+                  id="proyectoId"
+                  name="proyectoId"
+                  value={proyectoId}
+                  onChange={(event) => {
+                    setProyectoId(event.target.value);
+                    setObjetivoId("");
+                  }}
+                  disabled={loadingProyectos || Boolean(proyectoIdFromUrl)}
+                  className={theme.input.select}
+                >
+                  <option value="">
+                    {loadingProyectos ? "Cargando proyectos..." : "Sin proyecto"}
+                  </option>
 
-          {proyectos.map((proyecto) => (
-            <option key={proyecto.id} value={proyecto.id}>
-              {proyecto.nombre}
-            </option>
-          ))}
-        </select>
-      </div>
+                  {proyectos.map((proyecto) => (
+                    <option key={proyecto.id} value={proyecto.id}>
+                      {proyecto.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-      <div className="grid gap-2">
-        <label
-          htmlFor="objetivoId"
-          className="text-sm font-black text-slate-700"
-        >
-          Objetivo
-        </label>
+              <div className="grid gap-2">
+                <label
+                  htmlFor="objetivoId"
+                  className="text-sm font-black text-slate-700"
+                >
+                  Objetivo
+                </label>
 
-        <select
-          id="objetivoId"
-          name="objetivoId"
-          value={objetivoId}
-          onChange={(event) => setObjetivoId(event.target.value)}
-          disabled={loadingObjetivos || Boolean(objetivoIdFromUrl)}
-          className={theme.input.select}
-        >
-          <option value="">
-            {loadingObjetivos ? "Cargando objetivos..." : "Sin objetivo"}
-          </option>
+                <select
+                  id="objetivoId"
+                  name="objetivoId"
+                  value={objetivoId}
+                  onChange={(event) => setObjetivoId(event.target.value)}
+                  disabled={loadingObjetivos || Boolean(objetivoIdFromUrl)}
+                  className={theme.input.select}
+                >
+                  <option value="">
+                    {loadingObjetivos ? "Cargando objetivos..." : "Sin objetivo"}
+                  </option>
 
-          {objetivosFiltrados.map((objetivo) => (
-            <option key={objetivo.id} value={objetivo.id}>
-              {objetivo.titulo}
-            </option>
-          ))}
-        </select>
-      </div>
+                  {objetivosFiltrados.map((objetivo) => (
+                    <option key={objetivo.id} value={objetivo.id}>
+                      {objetivo.titulo}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-      <div className="grid gap-2">
-        <label
-          htmlFor="prioridad"
-          className="text-sm font-black text-slate-700"
-        >
-          Prioridad
-        </label>
+              <div className="grid gap-2">
+                <label
+                  htmlFor="prioridad"
+                  className="text-sm font-black text-slate-700"
+                >
+                  Prioridad
+                </label>
 
-        <select
-          id="prioridad"
-          name="prioridad"
-          value={prioridad}
-          onChange={(event) =>
-            setPrioridad(event.target.value as PrioridadTarea)
-          }
-          className={theme.input.select}
-        >
-          <option value="baja">Baja</option>
-          <option value="media">Media</option>
-          <option value="alta">Alta</option>
-        </select>
-      </div>
-    </div>
+                <select
+                  id="prioridad"
+                  name="prioridad"
+                  value={prioridad}
+                  onChange={(event) =>
+                    setPrioridad(event.target.value as PrioridadTarea)
+                  }
+                  className={theme.input.select}
+                >
+                  <option value="baja">Baja</option>
+                  <option value="media">Media</option>
+                  <option value="alta">Alta</option>
+                </select>
+              </div>
+            </div>
 
-    <div className="grid gap-4 md:grid-cols-3">
-      <div className="grid gap-2">
-        <label
-          htmlFor="fechaInicio"
-          className="text-sm font-black text-slate-700"
-        >
-          Inicio
-        </label>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-2">
+                <label
+                  htmlFor="fechaInicio"
+                  className="text-sm font-black text-slate-700"
+                >
+                  Inicio
+                </label>
 
-        <Input
-          id="fechaInicio"
-          name="fechaInicio"
-          type="date"
-          value={fechaInicio}
-          onChange={(event) => setFechaInicio(event.target.value)}
-          className={theme.input.base}
-        />
-      </div>
+                <Input
+                  id="fechaInicio"
+                  name="fechaInicio"
+                  type="date"
+                  value={fechaInicio}
+                  onChange={(event) => setFechaInicio(event.target.value)}
+                  className={theme.input.base}
+                />
+              </div>
 
-      <div className="grid gap-2">
-        <label
-          htmlFor="fechaLimite"
-          className="text-sm font-black text-slate-700"
-        >
-          Fin
-        </label>
+              <div className="grid gap-2">
+                <label
+                  htmlFor="fechaLimite"
+                  className="text-sm font-black text-slate-700"
+                >
+                  Fin
+                </label>
 
-        <Input
-          id="fechaLimite"
-          name="fechaLimite"
-          type="date"
-          value={fechaLimite}
-          onChange={(event) => setFechaLimite(event.target.value)}
-          className={theme.input.base}
-        />
-      </div>
+                <Input
+                  id="fechaLimite"
+                  name="fechaLimite"
+                  type="date"
+                  value={fechaLimite}
+                  onChange={(event) => setFechaLimite(event.target.value)}
+                  className={theme.input.base}
+                />
+              </div>
 
-      <div className="grid gap-2">
-        <label
-          htmlFor="recordatorio"
-          className="text-sm font-black text-slate-700"
-        >
-          Recordatorio
-        </label>
+              <div className="grid gap-2">
+                <label
+                  htmlFor="recordatorio"
+                  className="text-sm font-black text-slate-700"
+                >
+                  Recordatorio
+                </label>
 
-        <Input
-          id="recordatorio"
-          name="recordatorio"
-          type="date"
-          value={recordatorio}
-          onChange={(event) => setRecordatorio(event.target.value)}
-          className={theme.input.base}
-        />
-      </div>
-    </div>
+                <Input
+                  id="recordatorio"
+                  name="recordatorio"
+                  type="date"
+                  value={recordatorio}
+                  onChange={(event) => setRecordatorio(event.target.value)}
+                  className={theme.input.base}
+                />
+              </div>
+            </div>
 
-    {fechasInvalidas ? (
-      <div className={theme.alerts.warning}>
-        La fecha de inicio no puede ser mayor que la fecha límite.
-      </div>
-    ) : null}
+            {fechasInvalidas ? (
+              <div className={theme.alerts.warning}>
+                La fecha de inicio no puede ser mayor que la fecha límite.
+              </div>
+            ) : null}
 
-    <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm font-medium text-slate-500">
-        La tarea aparecerá en la tabla inferior y en el calendario si tiene fecha.
-      </p>
+            <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-medium text-slate-500">
+                La tarea aparecerá en la tabla inferior y en el calendario si tiene fecha.
+              </p>
 
-      <Button
-        type="submit"
-        size="lg"
-        className={theme.button.primaryLarge}
-        disabled={isPending || fechasInvalidas}
-      >
-        <Plus className="mr-2 h-5 w-5" />
-        {isPending ? "Creando..." : "Crear tarea"}
-      </Button>
-    </div>
-  </form>
-</Card>
+              <Button
+                type="submit"
+                size="lg"
+                className={theme.button.primaryLarge}
+                disabled={isPending || fechasInvalidas}
+              >
+                <Plus className="mr-2 h-5 w-5" />
+                {isPending ? "Creando..." : "Crear tarea"}
+              </Button>
+            </div>
+          </form>
+        </Card>
 
         <Card className={theme.card.base}>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -791,8 +791,8 @@ function TareasContent() {
                   type="button"
                   onClick={() => setEstadoFiltro(filtro.value)}
                   className={`h-10 rounded-2xl px-4 text-sm font-black transition ${active
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-slate-50 hover:text-slate-950"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-slate-50 hover:text-slate-950"
                     }`}
                 >
                   {filtro.label}
